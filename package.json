@@ -2,6 +2,19 @@
   "name": "json-schema-to-dts",
   "version": "0.1.0",
   "description": "Convert JSON Schema to TypeScript types with JSDoc annotations",
+  "keywords": [
+    "jsdoc",
+    "json-schema",
+    "types",
+    "typescript"
+  ],
+  "license": "MIT",
+  "author": "",
+  "files": [
+    "LICENSE",
+    "README.md",
+    "dist/**/*"
+  ],
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "exports": {
@@ -18,35 +31,25 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "test:coverage": "vitest run --coverage",
-    "prepublishOnly": "pnpm run build && pnpm test"
+    "prepublishOnly": "pnpm run build && pnpm test",
+    "fmt": "oxfmt",
+    "fmt:check": "oxfmt --check"
   },
-  "keywords": [
-    "json-schema",
-    "typescript",
-    "types",
-    "jsdoc"
-  ],
-  "engines": {
-    "node": ">=14.14.0"
-  },
-  "files": [
-    "dist/**/*",
-    "README.md",
-    "LICENSE"
-  ],
-  "author": "",
-  "license": "MIT",
-  "volta": {
-    "node": "20.20.0",
-    "pnpm": "10.28.0"
+  "dependencies": {
+    "glob": "^13.0.0"
   },
   "devDependencies": {
     "@types/node": "20",
     "@vitest/coverage-v8": "^4.0.17",
+    "oxfmt": "^0.24.0",
     "typescript": "^5.9.3",
     "vitest": "^4.0.17"
   },
-  "dependencies": {
-    "glob": "^13.0.0"
+  "engines": {
+    "node": ">=14.14.0"
+  },
+  "volta": {
+    "node": "20.20.0",
+    "pnpm": "10.28.0"
   }
 }

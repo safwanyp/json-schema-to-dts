@@ -18,21 +18,23 @@ graph TD
 **Location**: `src/index.ts`
 
 ```typescript
-export async function toTypes(config: ToTypesConfig): Promise<void>
+export async function toTypes(config: ToTypesConfig): Promise<void>;
 ```
 
 **What it does**:
+
 1. **Setup**: Creates output directory if it doesn't exist
 2. **Discovery**: Uses `glob` to find all `.json` files recursively
 3. **Processing**: Iterates through each schema file
 4. **Output**: Generates corresponding `.d.ts` files
 
 **Key Steps**:
+
 ```typescript
 // 1. Find all JSON files
-const schemaFiles = await glob('**/*.json', {
+const schemaFiles = await glob("**/*.json", {
   cwd: pathToJsonSchemas,
-  absolute: false
+  absolute: false,
 });
 
 // 2. Process each file
@@ -56,6 +58,7 @@ private getTypeFromSchema(schema: JsonSchema, rootSchema: JsonSchema): string
 **Purpose**: Converts JSON Schema type definitions to TypeScript type strings
 
 **Logic Flow**:
+
 ```typescript
 // 1. Handle references first
 if (schema.$ref) {
@@ -64,23 +67,31 @@ if (schema.$ref) {
 
 // 2. Handle constants
 if (schema.const !== undefined) {
-  return typeof schema.const === 'string' ? `"${schema.const}"` : String(schema.const);
+  return typeof schema.const === "string"
+    ? `"${schema.const}"`
+    : String(schema.const);
 }
 
 // 3. Handle enums
 if (schema.enum) {
-  return schema.enum.map(val => 
-    typeof val === 'string' ? `"${val}"` : String(val)
-  ).join(' | ');
+  return schema.enum
+    .map((val) => (typeof val === "string" ? `"${val}"` : String(val)))
+    .join(" | ");
 }
 
 // 4. Handle different types
 switch (schema.type) {
-  case 'string': return 'string';
-  case 'number': case 'integer': return 'number';
-  case 'boolean': return 'boolean';
-  case 'array': return this.handleArrayType(schema);
-  case 'object': return this.generateObjectType(schema);
+  case "string":
+    return "string";
+  case "number":
+  case "integer":
+    return "number";
+  case "boolean":
+    return "boolean";
+  case "array":
+    return this.handleArrayType(schema);
+  case "object":
+    return this.generateObjectType(schema);
 }
 ```
 
@@ -93,20 +104,23 @@ private generateObjectType(schema: JsonSchema, rootSchema: JsonSchema): string
 **Purpose**: Converts JSON Schema objects to TypeScript interface syntax
 
 **Process**:
+
 1. **Extract Properties**: Get all properties from `schema.properties`
 2. **Check Required**: Determine which properties are optional
 3. **Generate Property Lines**: Create TypeScript property syntax
 4. **Assemble Interface**: Combine into interface body
 
 ```typescript
-const properties = Object.entries(schema.properties).map(([key, propSchema]) => {
-  const isRequired = schema.required?.includes(key) ?? false;
-  const propType = this.getTypeFromSchema(propSchema, rootSchema);
-  const optional = isRequired ? '' : '?';
-  return `  ${key}${optional}: ${propType};`;
-});
+const properties = Object.entries(schema.properties).map(
+  ([key, propSchema]) => {
+    const isRequired = schema.required?.includes(key) ?? false;
+    const propType = this.getTypeFromSchema(propSchema, rootSchema);
+    const optional = isRequired ? "" : "?";
+    return `  ${key}${optional}: ${propType};`;
+  },
+);
 
-return `{\n${properties.join('\n')}\n}`;
+return `{\n${properties.join("\n")}\n}`;
 ```
 
 #### `generateJSDoc()` - Documentation Generation
@@ -118,17 +132,19 @@ private generateJSDoc(schema: JsonSchema): string
 **Purpose**: Creates JSDoc comments from JSON Schema metadata
 
 **Sources**:
+
 - `schema.title` → Main title
-- `schema.description` → Description text  
+- `schema.description` → Description text
 - `schema.examples` → `@example` blocks
 
 **Output Format**:
+
 ```typescript
 /**
  * Title
- * 
+ *
  * Description text
- * 
+ *
  * @example
  * { "key": "value" }
  */
@@ -145,6 +161,7 @@ private toPascalCase(str: string): string {
 ```
 
 **Examples**:
+
 - `user-profile` → `UserProfile`
 - `api_response` → `ApiResponse`
 - `programme-offer` → `ProgrammeOffer`
@@ -160,6 +177,7 @@ private resolveRef(ref: string, rootSchema: JsonSchema): JsonSchema
 **Purpose**: Resolves JSON Schema `$ref` pointers to actual schema objects
 
 **Supported Patterns**:
+
 - `#/definitions/TypeName` → `rootSchema.definitions.TypeName`
 - `#/$defs/TypeName` → `rootSchema.$defs.TypeName`
 
@@ -171,7 +189,7 @@ For each JSON Schema file:
 
 ```typescript
 // 1. Read and parse JSON
-const schemaContent = fs.readFileSync(fullSchemaPath, 'utf-8');
+const schemaContent = fs.readFileSync(fullSchemaPath, "utf-8");
 const schema: JsonSchema = JSON.parse(schemaContent);
 
 // 2. Extract type definitions
@@ -188,23 +206,32 @@ if (schema.definitions) {
 }
 
 // 4. Generate output file
-const content = typeDefinitions.join('\n\n') + '\n\n' + 
-               exportedTypes.map(typeName => `export { ${typeName} };`).join('\n') + '\n';
+const content =
+  typeDefinitions.join("\n\n") +
+  "\n\n" +
+  exportedTypes.map((typeName) => `export { ${typeName} };`).join("\n") +
+  "\n";
 ```
 
 ### 6. Directory Structure Handling
 
 **Path Transformation**:
+
 ```typescript
 // Input: test-schemas/sub-entities/programme-offer.schema.json
 // Output: generated-types/sub-entities/programme-offer.d.ts
 
-const outputFileName = path.basename(relativeSchemaPath, '.json').replace('.schema', '') + '.d.ts';
-const outputDir = path.join(pathToOutputDirectory, path.dirname(relativeSchemaPath));
+const outputFileName =
+  path.basename(relativeSchemaPath, ".json").replace(".schema", "") + ".d.ts";
+const outputDir = path.join(
+  pathToOutputDirectory,
+  path.dirname(relativeSchemaPath),
+);
 const outputFilePath = path.join(outputDir, outputFileName);
 ```
 
 **Directory Creation**:
+
 ```typescript
 if (!fs.existsSync(outputDir)) {
   fs.mkdirSync(outputDir, { recursive: true });
@@ -214,26 +241,31 @@ if (!fs.existsSync(outputDir)) {
 ## Type Conversion Examples
 
 ### Simple Types
+
 ```json
 // JSON Schema
 { "type": "string" }
 ```
+
 ```typescript
 // TypeScript
-string
+string;
 ```
 
 ### Enums
+
 ```json
 // JSON Schema
 { "enum": ["admin", "user", "guest"] }
 ```
+
 ```typescript
 // TypeScript
-"admin" | "user" | "guest"
+"admin" | "user" | "guest";
 ```
 
 ### Arrays
+
 ```json
 // JSON Schema
 {
@@ -241,12 +273,14 @@ string
   "items": { "type": "string" }
 }
 ```
+
 ```typescript
 // TypeScript
 string[]
 ```
 
 ### Objects
+
 ```json
 // JSON Schema
 {
@@ -258,6 +292,7 @@ string[]
   "required": ["id"]
 }
 ```
+
 ```typescript
 // TypeScript
 {
@@ -267,6 +302,7 @@ string[]
 ```
 
 ### References
+
 ```json
 // JSON Schema
 {
@@ -279,6 +315,7 @@ string[]
   }
 }
 ```
+
 ```typescript
 // TypeScript
 interface User {
@@ -293,6 +330,7 @@ interface RootType {
 ## Error Handling Strategy
 
 ### Graceful Degradation
+
 ```typescript
 try {
   // Process schema file
@@ -303,6 +341,7 @@ try {
 ```
 
 ### Fallback Types
+
 ```typescript
 // If type cannot be determined
 default: return 'any';
@@ -311,10 +350,12 @@ default: return 'any';
 ## Performance Considerations
 
 ### Memory Efficiency
+
 - **Streaming**: Process one file at a time
 - **No Caching**: Don't hold all schemas in memory simultaneously
 
 ### File I/O Optimization
+
 - **Batch Directory Creation**: Create directories as needed
 - **Single Write**: Write complete file content in one operation
 
@@ -328,6 +369,7 @@ The architecture supports future extensions:
 4. **Plugin System**: Hook into the processing pipeline
 
 This modular design makes it easy to add features like:
+
 - Custom naming conventions
 - Additional JSDoc tags
 - Type validation

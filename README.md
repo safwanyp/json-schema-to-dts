@@ -2,13 +2,14 @@
 
 A robust TypeScript package that converts complex JSON Schema files to TypeScript type definitions (.d.ts).
 
-***Disclaimer: AI assistance was used in the development of this project***
+**_Disclaimer: AI assistance was used in the development of this project_**
 
 **Key Features:**
-*   Handles deeply nested schemas and definitions
-*   Resolves references (`$ref`) accurately
-*   Supports `oneOf`, `anyOf`, and `allOf` combinators
-*   Preserves directory structure
+
+- Handles deeply nested schemas and definitions
+- Resolves references (`$ref`) accurately
+- Supports `oneOf`, `anyOf`, and `allOf` combinators
+- Preserves directory structure
 
 ## Requirements
 
@@ -25,16 +26,17 @@ npm install json-schema-to-dts
 ## Usage
 
 ```typescript
-import { toTypes } from 'json-schema-to-dts';
+import { toTypes } from "json-schema-to-dts";
 
 // Convert all JSON Schema files in a directory to TypeScript definition files
 await toTypes({
-  pathToJsonSchemas: './schemas',
-  pathToOutputDirectory: './src/types'
+  pathToJsonSchemas: "./schemas",
+  pathToOutputDirectory: "./src/types",
 });
 ```
 
 The function preserves the directory structure from input to output. For example:
+
 - Input: `schemas/programme.schema.json` → Output: `src/types/programme.d.ts`
 - Input: `schemas/v2/offer.schema.json` → Output: `src/types/v2/offer.d.ts`
 
@@ -43,6 +45,7 @@ The function preserves the directory structure from input to output. For example
 ### Complex Schema Support
 
 Input (`user.schema.json`):
+
 ```json
 {
   "title": "User",
@@ -61,6 +64,7 @@ Input (`user.schema.json`):
 ```
 
 Output (`user.d.ts`):
+
 ```typescript
 export interface User {
   id?: string;
@@ -78,6 +82,7 @@ export interface UserMeta {
 ### `toTypes(config: ToTypesConfig): Promise<void>`
 
 **Parameters:**
+
 - `config.pathToJsonSchemas` (string): Absolute or relative path to the directory containing `.json` schema files.
 - `config.pathToOutputDirectory` (string): Absolute or relative path to the directory where `.d.ts` files will be written.
 

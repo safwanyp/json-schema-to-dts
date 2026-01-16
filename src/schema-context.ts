@@ -31,7 +31,7 @@ export const createSchemaRegistry: CreateSchemaRegistry = () => {
     }
 
     return `${baseName}_${count}`;
-  }
+  };
 
   return {
     register(pointer, name) {
@@ -50,6 +50,6 @@ export const createSchemaRegistry: CreateSchemaRegistry = () => {
 
     getAll() {
       return pointerToNameMap;
-    }
+    },
   };
-}
+};

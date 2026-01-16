@@ -1,20 +1,20 @@
-import { describe, it, expect, beforeEach, afterEach } from 'vitest';
-import { toTypes } from '../src/index';
-import * as fs from 'fs';
-import * as path from 'path';
-import * as os from 'os';
+import { describe, it, expect, beforeEach, afterEach } from "vitest";
+import { toTypes } from "../src/index";
+import * as fs from "fs";
+import * as path from "path";
+import * as os from "os";
 
-describe('Integration Tests', () => {
+describe("Integration Tests", () => {
   let tempDir: string;
   let inputDir: string;
   let outputDir: string;
 
   beforeEach(() => {
     // Create temporary directories for testing
-    tempDir = fs.mkdtempSync(path.join(os.tmpdir(), 'json-schema-test-'));
-    inputDir = path.join(tempDir, 'schemas');
-    outputDir = path.join(tempDir, 'types');
-    
+    tempDir = fs.mkdtempSync(path.join(os.tmpdir(), "json-schema-test-"));
+    inputDir = path.join(tempDir, "schemas");
+    outputDir = path.join(tempDir, "types");
+
     fs.mkdirSync(inputDir, { recursive: true });
   });
 
@@ -25,267 +25,272 @@ describe('Integration Tests', () => {
     }
   });
 
-  it('should convert simple schema to TypeScript', async () => {
+  it("should convert simple schema to TypeScript", async () => {
     // Create test schema
     const schema = {
-      title: 'User',
-      description: 'A user in the system',
-      type: 'object',
+      title: "User",
+      description: "A user in the system",
+      type: "object",
       properties: {
-        id: { type: 'string', description: 'User ID' },
-        name: { type: 'string', description: 'Full name' },
-        age: { type: 'number', description: 'Age in years' }
+        id: { type: "string", description: "User ID" },
+        name: { type: "string", description: "Full name" },
+        age: { type: "number", description: "Age in years" },
       },
-      required: ['id', 'name']
+      required: ["id", "name"],
     };
 
     fs.writeFileSync(
-      path.join(inputDir, 'user.schema.json'),
-      JSON.stringify(schema, null, 2)
+      path.join(inputDir, "user.schema.json"),
+      JSON.stringify(schema, null, 2),
     );
 
     // Run conversion
     await toTypes({
       pathToJsonSchemas: inputDir,
-      pathToOutputDirectory: outputDir
+      pathToOutputDirectory: outputDir,
     });
 
     // Check output file exists
-    const outputFile = path.join(outputDir, 'user.d.ts');
+    const outputFile = path.join(outputDir, "user.d.ts");
     expect(fs.existsSync(outputFile)).toBe(true);
 
     // Check file content
-    const content = fs.readFileSync(outputFile, 'utf-8');
-    expect(content).toContain('interface User');
-    expect(content).toContain('id: string;');
-    expect(content).toContain('name: string;');
-    expect(content).toContain('age?: number;');
-    expect(content).toContain('export { User };');
-    expect(content).toContain('A user in the system');
+    const content = fs.readFileSync(outputFile, "utf-8");
+    expect(content).toContain("interface User");
+    expect(content).toContain("id: string;");
+    expect(content).toContain("name: string;");
+    expect(content).toContain("age?: number;");
+    expect(content).toContain("export { User };");
+    expect(content).toContain("A user in the system");
   });
 
-  it('should preserve directory structure', async () => {
+  it("should preserve directory structure", async () => {
     // Create nested directory structure
-    const subDir = path.join(inputDir, 'api', 'v1');
+    const subDir = path.join(inputDir, "api", "v1");
     fs.mkdirSync(subDir, { recursive: true });
 
     const schema = {
-      title: 'ApiResponse',
-      type: 'object',
+      title: "ApiResponse",
+      type: "object",
       properties: {
-        status: { type: 'string' },
-        data: { type: 'object' }
-      }
+        status: { type: "string" },
+        data: { type: "object" },
+      },
     };
 
     fs.writeFileSync(
-      path.join(subDir, 'response.schema.json'),
-      JSON.stringify(schema, null, 2)
+      path.join(subDir, "response.schema.json"),
+      JSON.stringify(schema, null, 2),
     );
 
     // Run conversion
     await toTypes({
       pathToJsonSchemas: inputDir,
-      pathToOutputDirectory: outputDir
+      pathToOutputDirectory: outputDir,
     });
 
     // Check nested output structure
-    const outputFile = path.join(outputDir, 'api', 'v1', 'response.d.ts');
+    const outputFile = path.join(outputDir, "api", "v1", "response.d.ts");
     expect(fs.existsSync(outputFile)).toBe(true);
 
-    const content = fs.readFileSync(outputFile, 'utf-8');
-    expect(content).toContain('interface ApiResponse');
-    expect(content).toContain('export { ApiResponse };');
+    const content = fs.readFileSync(outputFile, "utf-8");
+    expect(content).toContain("interface ApiResponse");
+    expect(content).toContain("export { ApiResponse };");
   });
 
-  it('should handle schema with definitions', async () => {
+  it("should handle schema with definitions", async () => {
     const schema = {
       definitions: {
         User: {
-          title: 'User',
-          type: 'object',
+          title: "User",
+          type: "object",
           properties: {
-            id: { type: 'string' },
-            name: { type: 'string' }
+            id: { type: "string" },
+            name: { type: "string" },
           },
-          required: ['id']
+          required: ["id"],
         },
         Profile: {
-          title: 'Profile',
-          type: 'object',
+          title: "Profile",
+          type: "object",
           properties: {
-            userId: { type: 'string' },
-            bio: { type: 'string' }
-          }
-        }
-      }
+            userId: { type: "string" },
+            bio: { type: "string" },
+          },
+        },
+      },
     };
 
     fs.writeFileSync(
-      path.join(inputDir, 'entities.schema.json'),
-      JSON.stringify(schema, null, 2)
+      path.join(inputDir, "entities.schema.json"),
+      JSON.stringify(schema, null, 2),
     );
 
     await toTypes({
       pathToJsonSchemas: inputDir,
-      pathToOutputDirectory: outputDir
+      pathToOutputDirectory: outputDir,
     });
 
-    const outputFile = path.join(outputDir, 'entities.d.ts');
-    const content = fs.readFileSync(outputFile, 'utf-8');
+    const outputFile = path.join(outputDir, "entities.d.ts");
+    const content = fs.readFileSync(outputFile, "utf-8");
 
-    expect(content).toContain('interface User');
-    expect(content).toContain('interface Profile');
-    expect(content).toContain('export { User };');
-    expect(content).toContain('export { Profile };');
+    expect(content).toContain("interface User");
+    expect(content).toContain("interface Profile");
+    expect(content).toContain("export { User };");
+    expect(content).toContain("export { Profile };");
   });
 
-  it('should handle schema with $defs', async () => {
+  it("should handle schema with $defs", async () => {
     const schema = {
       $defs: {
         Product: {
-          title: 'Product',
-          type: 'object',
+          title: "Product",
+          type: "object",
           properties: {
-            id: { type: 'string' },
-            price: { type: 'number' }
-          }
-        }
-      }
+            id: { type: "string" },
+            price: { type: "number" },
+          },
+        },
+      },
     };
 
     fs.writeFileSync(
-      path.join(inputDir, 'product.schema.json'),
-      JSON.stringify(schema, null, 2)
+      path.join(inputDir, "product.schema.json"),
+      JSON.stringify(schema, null, 2),
     );
 
     await toTypes({
       pathToJsonSchemas: inputDir,
-      pathToOutputDirectory: outputDir
+      pathToOutputDirectory: outputDir,
     });
 
-    const outputFile = path.join(outputDir, 'product.d.ts');
-    const content = fs.readFileSync(outputFile, 'utf-8');
+    const outputFile = path.join(outputDir, "product.d.ts");
+    const content = fs.readFileSync(outputFile, "utf-8");
 
-    expect(content).toContain('interface Product');
-    expect(content).toContain('export { Product };');
+    expect(content).toContain("interface Product");
+    expect(content).toContain("export { Product };");
   });
 
-  it('should handle references between schemas', async () => {
+  it("should handle references between schemas", async () => {
     const schema = {
       definitions: {
         Address: {
-          type: 'object',
+          type: "object",
           properties: {
-            street: { type: 'string' },
-            city: { type: 'string' }
-          }
+            street: { type: "string" },
+            city: { type: "string" },
+          },
         },
         Person: {
-          type: 'object',
+          type: "object",
           properties: {
-            name: { type: 'string' },
-            address: { $ref: '#/definitions/Address' }
-          }
-        }
-      }
+            name: { type: "string" },
+            address: { $ref: "#/definitions/Address" },
+          },
+        },
+      },
     };
 
     fs.writeFileSync(
-      path.join(inputDir, 'person.schema.json'),
-      JSON.stringify(schema, null, 2)
+      path.join(inputDir, "person.schema.json"),
+      JSON.stringify(schema, null, 2),
     );
 
     await toTypes({
       pathToJsonSchemas: inputDir,
-      pathToOutputDirectory: outputDir
+      pathToOutputDirectory: outputDir,
     });
 
-    const outputFile = path.join(outputDir, 'person.d.ts');
-    const content = fs.readFileSync(outputFile, 'utf-8');
+    const outputFile = path.join(outputDir, "person.d.ts");
+    const content = fs.readFileSync(outputFile, "utf-8");
 
-    expect(content).toContain('interface Address');
-    expect(content).toContain('interface Person');
-    expect(content).toContain('address?: Address;');
+    expect(content).toContain("interface Address");
+    expect(content).toContain("interface Person");
+    expect(content).toContain("address?: Address;");
   });
 
-  it('should handle multiple schema files', async () => {
+  it("should handle multiple schema files", async () => {
     // Create multiple schema files
     const userSchema = {
-      title: 'User',
-      type: 'object',
-      properties: { id: { type: 'string' } }
+      title: "User",
+      type: "object",
+      properties: { id: { type: "string" } },
     };
 
     const productSchema = {
-      title: 'Product',
-      type: 'object',
-      properties: { name: { type: 'string' } }
+      title: "Product",
+      type: "object",
+      properties: { name: { type: "string" } },
     };
 
     fs.writeFileSync(
-      path.join(inputDir, 'user.schema.json'),
-      JSON.stringify(userSchema, null, 2)
+      path.join(inputDir, "user.schema.json"),
+      JSON.stringify(userSchema, null, 2),
     );
 
     fs.writeFileSync(
-      path.join(inputDir, 'product.schema.json'),
-      JSON.stringify(productSchema, null, 2)
+      path.join(inputDir, "product.schema.json"),
+      JSON.stringify(productSchema, null, 2),
     );
 
     await toTypes({
       pathToJsonSchemas: inputDir,
-      pathToOutputDirectory: outputDir
+      pathToOutputDirectory: outputDir,
     });
 
     // Check both files were created
-    expect(fs.existsSync(path.join(outputDir, 'user.d.ts'))).toBe(true);
-    expect(fs.existsSync(path.join(outputDir, 'product.d.ts'))).toBe(true);
+    expect(fs.existsSync(path.join(outputDir, "user.d.ts"))).toBe(true);
+    expect(fs.existsSync(path.join(outputDir, "product.d.ts"))).toBe(true);
 
-    const userContent = fs.readFileSync(path.join(outputDir, 'user.d.ts'), 'utf-8');
-    const productContent = fs.readFileSync(path.join(outputDir, 'product.d.ts'), 'utf-8');
-
-    expect(userContent).toContain('interface User');
-    expect(productContent).toContain('interface Product');
-  });
-
-  it('should handle invalid JSON gracefully', async () => {
-    // Create invalid JSON file
-    fs.writeFileSync(
-      path.join(inputDir, 'invalid.json'),
-      '{ invalid json }'
+    const userContent = fs.readFileSync(
+      path.join(outputDir, "user.d.ts"),
+      "utf-8",
+    );
+    const productContent = fs.readFileSync(
+      path.join(outputDir, "product.d.ts"),
+      "utf-8",
     );
 
+    expect(userContent).toContain("interface User");
+    expect(productContent).toContain("interface Product");
+  });
+
+  it("should handle invalid JSON gracefully", async () => {
+    // Create invalid JSON file
+    fs.writeFileSync(path.join(inputDir, "invalid.json"), "{ invalid json }");
+
     // Should not throw, but should warn
-    await expect(toTypes({
-      pathToJsonSchemas: inputDir,
-      pathToOutputDirectory: outputDir
-    })).resolves.not.toThrow();
+    await expect(
+      toTypes({
+        pathToJsonSchemas: inputDir,
+        pathToOutputDirectory: outputDir,
+      }),
+    ).resolves.not.toThrow();
 
     // Output directory should still be created
     expect(fs.existsSync(outputDir)).toBe(true);
   });
 
-  it('should create output directories as needed', async () => {
+  it("should create output directories as needed", async () => {
     const schema = {
-      title: 'Test',
-      type: 'object',
-      properties: { id: { type: 'string' } }
+      title: "Test",
+      type: "object",
+      properties: { id: { type: "string" } },
     };
 
     fs.writeFileSync(
-      path.join(inputDir, 'test.schema.json'),
-      JSON.stringify(schema, null, 2)
+      path.join(inputDir, "test.schema.json"),
+      JSON.stringify(schema, null, 2),
     );
 
     // Use non-existent output directory
-    const deepOutputDir = path.join(outputDir, 'deep', 'nested', 'path');
+    const deepOutputDir = path.join(outputDir, "deep", "nested", "path");
 
     await toTypes({
       pathToJsonSchemas: inputDir,
-      pathToOutputDirectory: deepOutputDir
+      pathToOutputDirectory: deepOutputDir,
     });
 
-    expect(fs.existsSync(path.join(deepOutputDir, 'test.d.ts'))).toBe(true);
+    expect(fs.existsSync(path.join(deepOutputDir, "test.d.ts"))).toBe(true);
   });
 });

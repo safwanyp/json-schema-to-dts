@@ -1,97 +1,96 @@
-import { describe, it, expect } from 'vitest';
-import { JsonSchema, ToTypesConfig, TypeGenerationOptions } from '../src/types';
+import { describe, it, expect } from "vitest";
+import { JsonSchema, ToTypesConfig, TypeGenerationOptions } from "../src/types";
 
-describe('Type Definitions', () => {
-  describe('JsonSchema interface', () => {
-    it('should accept valid JSON Schema properties', () => {
+describe("Type Definitions", () => {
+  describe("JsonSchema interface", () => {
+    it("should accept valid JSON Schema properties", () => {
       const schema: JsonSchema = {
-        $schema: 'http://json-schema.org/draft-07/schema#',
-        $id: 'https://example.com/schema',
-        title: 'Test Schema',
-        description: 'A test schema',
-        type: 'object',
+        $schema: "http://json-schema.org/draft-07/schema#",
+        $id: "https://example.com/schema",
+        title: "Test Schema",
+        description: "A test schema",
+        type: "object",
         properties: {
-          id: { type: 'string' },
-          name: { type: 'string' }
+          id: { type: "string" },
+          name: { type: "string" },
         },
-        required: ['id'],
-        additionalProperties: false
+        required: ["id"],
+        additionalProperties: false,
       };
 
       expect(schema).toBeDefined();
-      expect(schema.title).toBe('Test Schema');
-      expect(schema.type).toBe('object');
-      expect(schema.required).toEqual(['id']);
+      expect(schema.title).toBe("Test Schema");
+      expect(schema.type).toBe("object");
+      expect(schema.required).toEqual(["id"]);
     });
 
-    it('should handle array of types', () => {
+    it("should handle array of types", () => {
       const schema: JsonSchema = {
-        type: ['string', 'null']
+        type: ["string", "null"],
       };
 
-      expect(schema.type).toEqual(['string', 'null']);
+      expect(schema.type).toEqual(["string", "null"]);
     });
 
-    it('should handle enum values', () => {
+    it("should handle enum values", () => {
       const schema: JsonSchema = {
-        enum: ['red', 'green', 'blue', 42, true, null]
+        enum: ["red", "green", "blue", 42, true, null],
       };
 
-      expect(schema.enum).toEqual(['red', 'green', 'blue', 42, true, null]);
+      expect(schema.enum).toEqual(["red", "green", "blue", 42, true, null]);
     });
 
-    it('should handle nested schemas', () => {
+    it("should handle nested schemas", () => {
       const schema: JsonSchema = {
-        type: 'object',
+        type: "object",
         properties: {
           user: {
-            type: 'object',
+            type: "object",
             properties: {
               profile: {
-                type: 'object',
+                type: "object",
                 properties: {
-                  email: { type: 'string' }
-                }
-              }
-            }
-          }
-        }
+                  email: { type: "string" },
+                },
+              },
+            },
+          },
+        },
       };
 
-      expect(schema.properties?.user?.properties?.profile?.properties?.email?.type).toBe('string');
+      expect(
+        schema.properties?.user?.properties?.profile?.properties?.email?.type,
+      ).toBe("string");
     });
 
-    it('should handle definitions and $defs', () => {
+    it("should handle definitions and $defs", () => {
       const schema: JsonSchema = {
         definitions: {
-          User: { type: 'object' }
+          User: { type: "object" },
         },
         $defs: {
-          Product: { type: 'object' }
-        }
+          Product: { type: "object" },
+        },
       };
 
       expect(schema.definitions?.User).toBeDefined();
       expect(schema.$defs?.Product).toBeDefined();
     });
 
-    it('should handle composition keywords', () => {
+    it("should handle composition keywords", () => {
       const schema: JsonSchema = {
         allOf: [
-          { type: 'object', properties: { id: { type: 'string' } } },
-          { type: 'object', properties: { name: { type: 'string' } } }
+          { type: "object", properties: { id: { type: "string" } } },
+          { type: "object", properties: { name: { type: "string" } } },
         ],
-        anyOf: [
-          { type: 'string' },
-          { type: 'number' }
-        ],
+        anyOf: [{ type: "string" }, { type: "number" }],
         oneOf: [
-          { type: 'string', format: 'email' },
-          { type: 'string', format: 'uri' }
+          { type: "string", format: "email" },
+          { type: "string", format: "uri" },
         ],
         not: {
-          type: 'null'
-        }
+          type: "null",
+        },
       };
 
       expect(schema.allOf).toHaveLength(2);
@@ -100,87 +99,87 @@ describe('Type Definitions', () => {
       expect(schema.not).toBeDefined();
     });
 
-    it('should handle validation keywords', () => {
+    it("should handle validation keywords", () => {
       const schema: JsonSchema = {
-        type: 'string',
+        type: "string",
         minLength: 1,
         maxLength: 100,
-        pattern: '^[a-zA-Z]+$',
-        format: 'email'
+        pattern: "^[a-zA-Z]+$",
+        format: "email",
       };
 
       expect(schema.minLength).toBe(1);
       expect(schema.maxLength).toBe(100);
-      expect(schema.pattern).toBe('^[a-zA-Z]+$');
-      expect(schema.format).toBe('email');
+      expect(schema.pattern).toBe("^[a-zA-Z]+$");
+      expect(schema.format).toBe("email");
     });
 
-    it('should handle numeric validation', () => {
+    it("should handle numeric validation", () => {
       const schema: JsonSchema = {
-        type: 'number',
+        type: "number",
         minimum: 0,
-        maximum: 100
+        maximum: 100,
       };
 
       expect(schema.minimum).toBe(0);
       expect(schema.maximum).toBe(100);
     });
 
-    it('should handle default values and examples', () => {
+    it("should handle default values and examples", () => {
       const schema: JsonSchema = {
-        type: 'string',
-        default: 'default-value',
-        examples: ['example1', 'example2']
+        type: "string",
+        default: "default-value",
+        examples: ["example1", "example2"],
       };
 
-      expect(schema.default).toBe('default-value');
-      expect(schema.examples).toEqual(['example1', 'example2']);
+      expect(schema.default).toBe("default-value");
+      expect(schema.examples).toEqual(["example1", "example2"]);
     });
   });
 
-  describe('ToTypesConfig interface', () => {
-    it('should accept valid configuration', () => {
+  describe("ToTypesConfig interface", () => {
+    it("should accept valid configuration", () => {
       const config: ToTypesConfig = {
-        pathToJsonSchemas: './schemas',
-        pathToOutputDirectory: './types'
+        pathToJsonSchemas: "./schemas",
+        pathToOutputDirectory: "./types",
       };
 
-      expect(config.pathToJsonSchemas).toBe('./schemas');
-      expect(config.pathToOutputDirectory).toBe('./types');
+      expect(config.pathToJsonSchemas).toBe("./schemas");
+      expect(config.pathToOutputDirectory).toBe("./types");
     });
 
-    it('should require both properties', () => {
+    it("should require both properties", () => {
       // This test ensures TypeScript compilation catches missing properties
       const config: ToTypesConfig = {
-        pathToJsonSchemas: './schemas',
-        pathToOutputDirectory: './types'
+        pathToJsonSchemas: "./schemas",
+        pathToOutputDirectory: "./types",
       };
 
       expect(config).toBeDefined();
     });
   });
 
-  describe('TypeGenerationOptions interface', () => {
-    it('should accept optional configuration', () => {
+  describe("TypeGenerationOptions interface", () => {
+    it("should accept optional configuration", () => {
       const options: TypeGenerationOptions = {
         includeJSDoc: false,
-        exportAll: true
+        exportAll: true,
       };
 
       expect(options.includeJSDoc).toBe(false);
       expect(options.exportAll).toBe(true);
     });
 
-    it('should work with partial configuration', () => {
+    it("should work with partial configuration", () => {
       const options: TypeGenerationOptions = {
-        includeJSDoc: true
+        includeJSDoc: true,
       };
 
       expect(options.includeJSDoc).toBe(true);
       expect(options.exportAll).toBeUndefined();
     });
 
-    it('should work with empty configuration', () => {
+    it("should work with empty configuration", () => {
       const options: TypeGenerationOptions = {};
 
       expect(options).toBeDefined();
