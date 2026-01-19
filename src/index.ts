@@ -3,7 +3,7 @@ import * as path from "path";
 import { glob } from "glob";
 import { JsonSchema, ToTypesConfig } from "./types";
 import { generateTypeDefinition } from "./schema-parser";
-import { createSchemaRegistry } from "./schema-context";
+import { createTypeNameRegistry } from "./type-name-registry";
 import { scanSchema } from "./schema-scanner";
 
 type ToTypes = (config: ToTypesConfig) => Promise<void>;
@@ -32,7 +32,7 @@ export const toTypes: ToTypes = async (config) => {
       const schemaContent = fs.readFileSync(fullSchemaPath, "utf-8");
       const schema: JsonSchema = JSON.parse(schemaContent);
 
-      const registry = createSchemaRegistry();
+      const registry = createTypeNameRegistry();
 
       // Pass 1: Scan and Register Types
       scanSchema({ schema, registry });

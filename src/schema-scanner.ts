@@ -1,9 +1,9 @@
 import { JsonSchema } from "./types";
-import { SchemaRegistry } from "./schema-context";
+import { TypeNameRegistry } from "./type-name-registry";
 
 export interface ScanSchemaParams {
   schema: JsonSchema;
-  registry: SchemaRegistry;
+  registry: TypeNameRegistry;
   rootPointer?: string;
 }
 
@@ -38,7 +38,7 @@ export const scanSchema: ScanSchema = ({ schema, registry, rootPointer = "#" }) 
 
 export interface TraverseParams {
   schema: JsonSchema;
-  registry: SchemaRegistry;
+  registry: TypeNameRegistry;
   references: Set<string>;
   pointer: string;
   suggestedName: string;

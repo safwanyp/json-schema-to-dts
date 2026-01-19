@@ -1,5 +1,5 @@
 import { JsonSchema } from "./types";
-import { SchemaRegistry } from "./schema-context";
+import { TypeNameRegistry } from "./type-name-registry";
 
 export interface GeneratedType {
   definition: string;
@@ -10,7 +10,7 @@ export interface GenerateTypeDefinitionParams {
   name: string;
   schema: JsonSchema;
   rootSchema: JsonSchema;
-  registry?: SchemaRegistry;
+  registry?: TypeNameRegistry;
 }
 
 type GenerateTypeDefinition = (
@@ -42,7 +42,7 @@ export const generateTypeDefinition: GenerateTypeDefinition = ({
 export interface GetTypeFromSchemaParams {
   schema: JsonSchema;
   rootSchema: JsonSchema;
-  registry?: SchemaRegistry;
+  registry?: TypeNameRegistry;
 }
 
 type GetTypeFromSchema = (params: GetTypeFromSchemaParams) => string;
@@ -148,7 +148,7 @@ const getTypeFromSchema: GetTypeFromSchema = ({ schema, rootSchema, registry }) 
 export interface GenerateUnionTypeParams {
   schemas: JsonSchema[];
   rootSchema: JsonSchema;
-  registry?: SchemaRegistry;
+  registry?: TypeNameRegistry;
 }
 
 type GenerateUnionType = (params: GenerateUnionTypeParams) => string;
@@ -165,7 +165,7 @@ const generateUnionType: GenerateUnionType = ({
 export interface GenerateIntersectionTypeParams {
   schemas: JsonSchema[];
   rootSchema: JsonSchema;
-  registry?: SchemaRegistry;
+  registry?: TypeNameRegistry;
 }
 
 type GenerateIntersectionType = (params: GenerateIntersectionTypeParams) => string | null;
@@ -186,7 +186,7 @@ const generateIntersectionType: GenerateIntersectionType = ({
 export interface ResolveLegacyRefParams {
   ref: string;
   rootSchema: JsonSchema;
-  registry?: SchemaRegistry;
+  registry?: TypeNameRegistry;
 }
 
 type ResolveLegacyRef = (params: ResolveLegacyRefParams) => string;
@@ -266,7 +266,7 @@ const mapJsonTypeToTs: MapJsonTypeToTs = (jsonType) => {
 export interface GenerateObjectTypeParams {
   schema: JsonSchema;
   rootSchema: JsonSchema;
-  registry?: SchemaRegistry;
+  registry?: TypeNameRegistry;
 }
 
 type GenerateObjectType = (params: GenerateObjectTypeParams) => string;
