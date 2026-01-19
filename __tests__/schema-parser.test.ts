@@ -18,7 +18,7 @@ describe("SchemaParser (Functional)", () => {
 
       // In the new architecture, the caller (Integration/Scanner) is responsible for
       // providing the normalized, unique name.
-      const result = generateTypeDefinition("User", schema, schema);
+      const result = generateTypeDefinition({ name: "User", schema, rootSchema: schema });
 
       expect(result.typeName).toBe("User");
       expect(result.definition).toContain("/**");
@@ -39,7 +39,7 @@ describe("SchemaParser (Functional)", () => {
         examples: [{ id: "test-123" }],
       };
 
-      const result = generateTypeDefinition("Product", schema, schema);
+      const result = generateTypeDefinition({ name: "Product", schema, rootSchema: schema });
 
       expect(result.definition).toContain("@example");
       expect(result.definition).toContain('"id": "test-123"');
@@ -57,11 +57,11 @@ describe("SchemaParser (Functional)", () => {
       ];
 
       testCases.forEach(({ schema, expected }) => {
-        const result = generateTypeDefinition(
-          "Test",
-          schema as JsonSchema,
-          schema as JsonSchema,
-        );
+        const result = generateTypeDefinition({
+          name: "Test",
+          schema: schema as JsonSchema,
+          rootSchema: schema as JsonSchema,
+        });
         expect(result.definition).toContain(expected);
       });
     });
@@ -72,7 +72,7 @@ describe("SchemaParser (Functional)", () => {
         enum: ["admin", "user", "guest"],
       };
 
-      const result = generateTypeDefinition("Role", schema, schema);
+      const result = generateTypeDefinition({ name: "Role", schema, rootSchema: schema });
       expect(result.definition).toContain('"admin" | "user" | "guest"');
     });
 
@@ -81,7 +81,7 @@ describe("SchemaParser (Functional)", () => {
         const: "fixed-value",
       };
 
-      const result = generateTypeDefinition("Constant", schema, schema);
+      const result = generateTypeDefinition({ name: "Constant", schema, rootSchema: schema });
       expect(result.definition).toContain('"fixed-value"');
     });
 
@@ -91,7 +91,7 @@ describe("SchemaParser (Functional)", () => {
         items: { type: "string" },
       };
 
-      const result = generateTypeDefinition("Tags", schema, schema);
+      const result = generateTypeDefinition({ name: "Tags", schema, rootSchema: schema });
       expect(result.definition).toContain("string[]");
     });
 
@@ -103,7 +103,7 @@ describe("SchemaParser (Functional)", () => {
         },
       };
 
-      const result = generateTypeDefinition("Colors", schema, schema);
+      const result = generateTypeDefinition({ name: "Colors", schema, rootSchema: schema });
       expect(result.definition).toContain('("red" | "green" | "blue")[]');
     });
 
@@ -112,7 +112,7 @@ describe("SchemaParser (Functional)", () => {
         type: ["string", "number"],
       };
 
-      const result = generateTypeDefinition("Mixed", schema, schema);
+      const result = generateTypeDefinition({ name: "Mixed", schema, rootSchema: schema });
       expect(result.definition).toContain("string | number");
     });
   });
@@ -129,7 +129,7 @@ describe("SchemaParser (Functional)", () => {
         required: ["id", "name"],
       };
 
-      const result = generateTypeDefinition("Person", schema, schema);
+      const result = generateTypeDefinition({ name: "Person", schema, rootSchema: schema });
 
       expect(result.definition).toContain("id: string;");
       expect(result.definition).toContain("name: string;");
@@ -155,7 +155,7 @@ describe("SchemaParser (Functional)", () => {
         },
       };
 
-      const result = generateTypeDefinition("Data", schema, schema);
+      const result = generateTypeDefinition({ name: "Data", schema, rootSchema: schema });
       expect(result.definition).toContain("user?:");
       expect(result.definition).toContain("id?: string;");
       expect(result.definition).toContain("profile?:");
@@ -180,7 +180,7 @@ describe("SchemaParser (Functional)", () => {
         },
       };
 
-      const result = generateTypeDefinition("Document", rootSchema, rootSchema);
+      const result = generateTypeDefinition({ name: "Document", schema: rootSchema, rootSchema });
       expect(result.definition).toContain("owner?: User;");
     });
 
@@ -200,7 +200,7 @@ describe("SchemaParser (Functional)", () => {
         },
       };
 
-      const result = generateTypeDefinition("Product", rootSchema, rootSchema);
+      const result = generateTypeDefinition({ name: "Product", schema: rootSchema, rootSchema });
       expect(result.definition).toContain("category?: Category;");
     });
   });
@@ -217,7 +217,7 @@ describe("SchemaParser (Functional)", () => {
       testCases.forEach(({ input, expected }) => {
         const schema: JsonSchema = { type: "object" };
         // We now pass the pre-normalized name
-        const result = generateTypeDefinition(input, schema, schema);
+        const result = generateTypeDefinition({ name: input, schema, rootSchema: schema });
         expect(result.typeName).toBe(expected);
         expect(result.definition).toContain(expected);
       });
@@ -230,7 +230,7 @@ describe("SchemaParser (Functional)", () => {
         type: "object",
       };
 
-      const result = generateTypeDefinition("Empty", schema, schema);
+      const result = generateTypeDefinition({ name: "Empty", schema, rootSchema: schema });
       expect(result.definition).toContain("Record<string, any>");
     });
 
@@ -239,7 +239,7 @@ describe("SchemaParser (Functional)", () => {
         type: "array",
       };
 
-      const result = generateTypeDefinition("List", schema, schema);
+      const result = generateTypeDefinition({ name: "List", schema, rootSchema: schema });
       expect(result.definition).toContain("any[]");
     });
 
@@ -248,7 +248,7 @@ describe("SchemaParser (Functional)", () => {
         type: "unknown" as any,
       };
 
-      const result = generateTypeDefinition("Mystery", schema, schema);
+      const result = generateTypeDefinition({ name: "Mystery", schema, rootSchema: schema });
       expect(result.definition).toContain("any");
     });
   });

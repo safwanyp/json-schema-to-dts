@@ -35,7 +35,7 @@ export const toTypes: ToTypes = async (config) => {
       const registry = createSchemaRegistry();
 
       // Pass 1: Scan and Register Types
-      scanSchema(schema, registry);
+      scanSchema({ schema, registry });
 
       // Pass 2: Generate Code
       const typeDefinitions: string[] = [];
@@ -48,14 +48,14 @@ export const toTypes: ToTypes = async (config) => {
         const typeName = allRegistered.get(pointer)!;
 
         // Resolve the schema fragment for this pointer
-        const fragment = resolvePointer(schema, pointer);
+        const fragment = resolvePointer({ root: schema, pointer });
         if (fragment) {
-          const result = generateTypeDefinition(
-            typeName,
-            fragment,
-            schema,
+          const result = generateTypeDefinition({
+            name: typeName,
+            schema: fragment,
+            rootSchema: schema,
             registry,
-          );
+          });
           typeDefinitions.push(result.definition);
           exportedTypes.push(result.typeName);
         }
@@ -98,9 +98,14 @@ export const toTypes: ToTypes = async (config) => {
   }
 };
 
-type ResolvePointer = (root: JsonSchema, pointer: string) => JsonSchema | null;
+export interface ResolvePointerParams {
+  root: JsonSchema;
+  pointer: string;
+}
 
-const resolvePointer: ResolvePointer = (root, pointer) => {
+type ResolvePointer = (params: ResolvePointerParams) => JsonSchema | null;
+
+const resolvePointer: ResolvePointer = ({ root, pointer }) => {
   if (pointer === "#") return root;
 
   // Remove #/ prefix

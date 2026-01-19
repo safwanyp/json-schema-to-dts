@@ -6,26 +6,30 @@ export interface GeneratedType {
   typeName: string;
 }
 
+export interface GenerateTypeDefinitionParams {
+  name: string;
+  schema: JsonSchema;
+  rootSchema: JsonSchema;
+  registry?: SchemaRegistry;
+}
+
 type GenerateTypeDefinition = (
-  name: string,
-  schema: JsonSchema,
-  rootSchema: JsonSchema,
-  registry?: SchemaRegistry,
+  params: GenerateTypeDefinitionParams,
 ) => GeneratedType;
 
-export const generateTypeDefinition: GenerateTypeDefinition = (
+export const generateTypeDefinition: GenerateTypeDefinition = ({
   name,
   schema,
   rootSchema,
   registry,
-) => {
+}) => {
   const jsDoc = generateJSDoc(schema);
   // Trust the provided name from the registry, do not re-normalize it
   const typeName = name;
-  const typeDefinition = getTypeFromSchema(schema, rootSchema, registry);
+  const typeDefinition = getTypeFromSchema({ schema, rootSchema, registry });
 
   // Determine if this should be a type alias or interface
-  const isTypeAlias = shouldUseTypeAlias(schema, typeDefinition);
+  const isTypeAlias = shouldUseTypeAlias({ schema, typeDefinition });
   const keyword = isTypeAlias ? "type" : "interface";
   const separator = isTypeAlias ? " = " : " ";
 
@@ -35,13 +39,15 @@ export const generateTypeDefinition: GenerateTypeDefinition = (
   };
 };
 
-type GetTypeFromSchema = (
-  schema: JsonSchema,
-  rootSchema: JsonSchema,
-  registry?: SchemaRegistry,
-) => string;
+export interface GetTypeFromSchemaParams {
+  schema: JsonSchema;
+  rootSchema: JsonSchema;
+  registry?: SchemaRegistry;
+}
 
-const getTypeFromSchema: GetTypeFromSchema = (schema, rootSchema, registry) => {
+type GetTypeFromSchema = (params: GetTypeFromSchemaParams) => string;
+
+const getTypeFromSchema: GetTypeFromSchema = ({ schema, rootSchema, registry }) => {
   // 1. Handle $ref using Registry if available
   if (schema.$ref) {
     if (registry) {
@@ -52,7 +58,7 @@ const getTypeFromSchema: GetTypeFromSchema = (schema, rootSchema, registry) => {
     }
 
     // Fallback to legacy resolution if context fails or is missing
-    return resolveLegacyRef(schema.$ref, rootSchema, registry);
+    return resolveLegacyRef({ ref: schema.$ref, rootSchema, registry });
   }
 
   // Capture parts if they exist
@@ -61,15 +67,11 @@ const getTypeFromSchema: GetTypeFromSchema = (schema, rootSchema, registry) => {
 
   // 2. Check for Combinators (oneOf, anyOf, allOf)
   if (schema.oneOf) {
-    combinatorType = generateUnionType(schema.oneOf, rootSchema, registry);
+    combinatorType = generateUnionType({ schemas: schema.oneOf, rootSchema, registry });
   } else if (schema.anyOf) {
-    combinatorType = generateUnionType(schema.anyOf, rootSchema, registry);
+    combinatorType = generateUnionType({ schemas: schema.anyOf, rootSchema, registry });
   } else if (schema.allOf) {
-    combinatorType = generateIntersectionType(
-      schema.allOf,
-      rootSchema,
-      registry,
-    );
+    combinatorType = generateIntersectionType({ schemas: schema.allOf, rootSchema, registry });
   }
 
   // 3. Check for Object Properties or explicit object type
@@ -80,7 +82,7 @@ const getTypeFromSchema: GetTypeFromSchema = (schema, rootSchema, registry) => {
 
   if (hasObjectDefinition) {
     if (schema.properties || schema.additionalProperties) {
-      objectType = generateObjectType(schema, rootSchema, registry);
+      objectType = generateObjectType({ schema, rootSchema, registry });
     } else if (schema.type === "object" && !combinatorType) {
       objectType = "Record<string, any>";
     }
@@ -131,7 +133,7 @@ const getTypeFromSchema: GetTypeFromSchema = (schema, rootSchema, registry) => {
       return "null";
     case "array":
       if (schema.items) {
-        const itemType = getTypeFromSchema(schema.items, rootSchema, registry);
+        const itemType = getTypeFromSchema({ schema: schema.items, rootSchema, registry });
         if (itemType.includes(" | ") || itemType.includes(" & ")) {
           return `(${itemType})[]`;
         }
@@ -143,33 +145,37 @@ const getTypeFromSchema: GetTypeFromSchema = (schema, rootSchema, registry) => {
   }
 };
 
-type GenerateUnionType = (
-  schemas: JsonSchema[],
-  rootSchema: JsonSchema,
-  registry?: SchemaRegistry,
-) => string;
+export interface GenerateUnionTypeParams {
+  schemas: JsonSchema[];
+  rootSchema: JsonSchema;
+  registry?: SchemaRegistry;
+}
 
-const generateUnionType: GenerateUnionType = (
+type GenerateUnionType = (params: GenerateUnionTypeParams) => string;
+
+const generateUnionType: GenerateUnionType = ({
   schemas,
   rootSchema,
   registry,
-) => {
-  const types = schemas.map((s) => getTypeFromSchema(s, rootSchema, registry));
+}) => {
+  const types = schemas.map((s) => getTypeFromSchema({ schema: s, rootSchema, registry }));
   return types.join(" | ");
 };
 
-type GenerateIntersectionType = (
-  schemas: JsonSchema[],
-  rootSchema: JsonSchema,
-  registry?: SchemaRegistry,
-) => string | null;
+export interface GenerateIntersectionTypeParams {
+  schemas: JsonSchema[];
+  rootSchema: JsonSchema;
+  registry?: SchemaRegistry;
+}
 
-const generateIntersectionType: GenerateIntersectionType = (
+type GenerateIntersectionType = (params: GenerateIntersectionTypeParams) => string | null;
+
+const generateIntersectionType: GenerateIntersectionType = ({
   schemas,
   rootSchema,
   registry,
-) => {
-  const types = schemas.map((s) => getTypeFromSchema(s, rootSchema, registry));
+}) => {
+  const types = schemas.map((s) => getTypeFromSchema({ schema: s, rootSchema, registry }));
   // Filter out 'any' and 'unknown' to prevent them from poisoning the intersection
   const meaningfulTypes = types.filter((t) => t !== "any" && t !== "unknown");
 
@@ -177,15 +183,17 @@ const generateIntersectionType: GenerateIntersectionType = (
   return meaningfulTypes.join(" & ");
 };
 
-type ResolveLegacyRef = (
-  ref: string,
-  rootSchema: JsonSchema,
-  registry?: SchemaRegistry,
-) => string;
+export interface ResolveLegacyRefParams {
+  ref: string;
+  rootSchema: JsonSchema;
+  registry?: SchemaRegistry;
+}
 
-const resolveLegacyRef: ResolveLegacyRef = (ref, rootSchema, registry) => {
+type ResolveLegacyRef = (params: ResolveLegacyRefParams) => string;
+
+const resolveLegacyRef: ResolveLegacyRef = ({ ref, rootSchema, registry }) => {
   // Legacy Logic
-  const resolved = resolveRefObject(ref, rootSchema);
+  const resolved = resolveRefObject({ ref, rootSchema });
   if (resolved && Object.keys(resolved).length > 0) {
     if (
       resolved.type &&
@@ -194,7 +202,7 @@ const resolveLegacyRef: ResolveLegacyRef = (ref, rootSchema, registry) => {
       !resolved.oneOf
     ) {
       // It's a simple alias, recurse
-      return getTypeFromSchema(resolved, rootSchema, registry);
+      return getTypeFromSchema({ schema: resolved, rootSchema, registry });
     }
     const parts = ref.split("/");
     return toPascalCase(parts[parts.length - 1]);
@@ -203,9 +211,14 @@ const resolveLegacyRef: ResolveLegacyRef = (ref, rootSchema, registry) => {
   return toPascalCase(parts[parts.length - 1]);
 };
 
-type ResolveRefObject = (ref: string, rootSchema: JsonSchema) => JsonSchema;
+export interface ResolveRefObjectParams {
+  ref: string;
+  rootSchema: JsonSchema;
+}
 
-const resolveRefObject: ResolveRefObject = (ref, rootSchema) => {
+type ResolveRefObject = (params: ResolveRefObjectParams) => JsonSchema;
+
+const resolveRefObject: ResolveRefObject = ({ ref, rootSchema }) => {
   if (ref.startsWith("#/definitions/")) {
     return rootSchema.definitions?.[ref.replace("#/definitions/", "")] || {};
   }
@@ -250,17 +263,19 @@ const mapJsonTypeToTs: MapJsonTypeToTs = (jsonType) => {
   }
 };
 
-type GenerateObjectType = (
-  schema: JsonSchema,
-  rootSchema: JsonSchema,
-  registry?: SchemaRegistry,
-) => string;
+export interface GenerateObjectTypeParams {
+  schema: JsonSchema;
+  rootSchema: JsonSchema;
+  registry?: SchemaRegistry;
+}
 
-const generateObjectType: GenerateObjectType = (
+type GenerateObjectType = (params: GenerateObjectTypeParams) => string;
+
+const generateObjectType: GenerateObjectType = ({
   schema,
   rootSchema,
   registry,
-) => {
+}) => {
   if (!schema.properties && !schema.additionalProperties) {
     return "Record<string, any>";
   }
@@ -270,7 +285,7 @@ const generateObjectType: GenerateObjectType = (
   if (schema.properties) {
     Object.entries(schema.properties).forEach(([key, propSchema]) => {
       const isRequired = schema.required?.includes(key) ?? false;
-      const propType = getTypeFromSchema(propSchema, rootSchema, registry);
+      const propType = getTypeFromSchema({ schema: propSchema, rootSchema, registry });
       const optional = isRequired ? "" : "?";
       lines.push(`  ${key}${optional}: ${propType};`);
     });
@@ -278,11 +293,11 @@ const generateObjectType: GenerateObjectType = (
 
   if (schema.additionalProperties) {
     if (typeof schema.additionalProperties === "object") {
-      const valueType = getTypeFromSchema(
-        schema.additionalProperties,
+      const valueType = getTypeFromSchema({
+        schema: schema.additionalProperties,
         rootSchema,
         registry,
-      );
+      });
       lines.push(`  [key: string]: ${valueType};`);
     } else if (schema.additionalProperties === true) {
       lines.push(`  [key: string]: any;`);
@@ -321,10 +336,12 @@ const generateJSDoc: GenerateJSDoc = (schema) => {
   return "/**\n * " + lines.join("\n * ") + "\n */\n";
 };
 
-type ShouldUseTypeAlias = (
-  schema: JsonSchema,
-  typeDefinition: string,
-) => boolean;
+export interface ShouldUseTypeAliasParams {
+  schema: JsonSchema;
+  typeDefinition: string;
+}
+
+type ShouldUseTypeAlias = (params: ShouldUseTypeAliasParams) => boolean;
 
 /**
  * Determines whether to use a `type` alias or an `interface` for the generated definition.
@@ -344,7 +361,7 @@ type ShouldUseTypeAlias = (
  * @param typeDefinition The generated TypeScript type string (RHS of the assignment)
  * @returns True if `type` should be used, False if `interface` should be used.
  */
-const shouldUseTypeAlias: ShouldUseTypeAlias = (schema, typeDefinition) => {
+const shouldUseTypeAlias: ShouldUseTypeAlias = ({ schema, typeDefinition }) => {
   if (schema.enum || schema.const !== undefined) return true;
   if (["string", "number", "boolean", "array"].includes(schema.type as string))
     return true;

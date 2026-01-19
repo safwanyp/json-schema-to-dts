@@ -1,21 +1,23 @@
 import { JsonSchema } from "./types";
 import { SchemaRegistry } from "./schema-context";
 
-type ScanSchema = (
-  schema: JsonSchema,
-  registry: SchemaRegistry,
-  rootPointer?: string,
-) => void;
+export interface ScanSchemaParams {
+  schema: JsonSchema;
+  registry: SchemaRegistry;
+  rootPointer?: string;
+}
+
+type ScanSchema = (params: ScanSchemaParams) => void;
 
 /**
  * Scan the schema to identify and register all type definitions
  */
-export const scanSchema: ScanSchema = (schema, registry, rootPointer = "#") => {
+export const scanSchema: ScanSchema = ({ schema, registry, rootPointer = "#" }) => {
   const references = new Set<string>();
 
   // Pass 1: Traverse and register explicit definitions
   // Start with empty string so top level doesn't get double named if it has a title
-  traverse(schema, registry, references, rootPointer, "");
+  traverse({ schema, registry, references, pointer: rootPointer, suggestedName: "" });
 
   // Pass 2: Register missing references
   references.forEach((ref) => {
@@ -34,21 +36,23 @@ export const scanSchema: ScanSchema = (schema, registry, rootPointer = "#") => {
   });
 };
 
-type Traverse = (
-  schema: JsonSchema,
-  registry: SchemaRegistry,
-  references: Set<string>,
-  pointer: string,
-  suggestedName: string,
-) => void;
+export interface TraverseParams {
+  schema: JsonSchema;
+  registry: SchemaRegistry;
+  references: Set<string>;
+  pointer: string;
+  suggestedName: string;
+}
 
-const traverse: Traverse = (
+type Traverse = (params: TraverseParams) => void;
+
+const traverse: Traverse = ({
   schema,
   registry,
   references,
   pointer,
   suggestedName,
-) => {
+}) => {
   if (!schema || typeof schema !== "object") {
     return;
   }
@@ -105,26 +109,26 @@ const traverse: Traverse = (
   if (schema.definitions) {
     for (const [key, def] of Object.entries(schema.definitions)) {
       const subName = toPascalCase(key);
-      traverse(
-        def as JsonSchema,
+      traverse({
+        schema: def as JsonSchema,
         registry,
         references,
-        `${pointer}/definitions/${key}`,
-        subName,
-      );
+        pointer: `${pointer}/definitions/${key}`,
+        suggestedName: subName,
+      });
     }
   }
 
   if (schema.$defs) {
     for (const [key, def] of Object.entries(schema.$defs)) {
       const subName = toPascalCase(key);
-      traverse(
-        def as JsonSchema,
+      traverse({
+        schema: def as JsonSchema,
         registry,
         references,
-        `${pointer}/$defs/${key}`,
-        subName,
-      );
+        pointer: `${pointer}/$defs/${key}`,
+        suggestedName: subName,
+      });
     }
   }
 
@@ -133,13 +137,13 @@ const traverse: Traverse = (
     for (const [key, prop] of Object.entries(schema.properties)) {
       // Append key to parent name for path-based naming
       const propName = name + toPascalCase(key);
-      traverse(
-        prop as JsonSchema,
+      traverse({
+        schema: prop as JsonSchema,
         registry,
         references,
-        `${pointer}/properties/${key}`,
-        propName,
-      );
+        pointer: `${pointer}/properties/${key}`,
+        suggestedName: propName,
+      });
     }
   }
 
@@ -147,25 +151,25 @@ const traverse: Traverse = (
   if (schema.items) {
     if (Array.isArray(schema.items)) {
       schema.items.forEach((item, index) => {
-        traverse(
-          item as JsonSchema,
+        traverse({
+          schema: item as JsonSchema,
           registry,
           references,
-          `${pointer}/items/${index}`,
-          `${name}Item${index}`,
-        );
+          pointer: `${pointer}/items/${index}`,
+          suggestedName: `${name}Item${index}`,
+        });
       });
     } else {
       // Arrays often wrap a type. If it's a list of Users, we often want 'User'.
       // But if it's 'Items', we might want 'ParentItems'.
       // Let's keep prefixing but maybe simplistic.
-      traverse(
-        schema.items as JsonSchema,
+      traverse({
+        schema: schema.items as JsonSchema,
         registry,
         references,
-        `${pointer}/items`,
-        `${name}Item`,
-      );
+        pointer: `${pointer}/items`,
+        suggestedName: `${name}Item`,
+      });
     }
   }
 
@@ -174,13 +178,13 @@ const traverse: Traverse = (
     schema.additionalProperties &&
     typeof schema.additionalProperties === "object"
   ) {
-    traverse(
-      schema.additionalProperties as JsonSchema,
+    traverse({
+      schema: schema.additionalProperties as JsonSchema,
       registry,
       references,
-      `${pointer}/additionalProperties`,
-      `${name}Value`,
-    );
+      pointer: `${pointer}/additionalProperties`,
+      suggestedName: `${name}Value`,
+    });
   }
 
   // Scan combinators
@@ -188,35 +192,35 @@ const traverse: Traverse = (
   // But traverse will handle the "Simple Ref" check at the top of the recursive call.
   if (schema.oneOf) {
     schema.oneOf.forEach((sub, index) =>
-      traverse(
-        sub as JsonSchema,
+      traverse({
+        schema: sub as JsonSchema,
         registry,
         references,
-        `${pointer}/oneOf/${index}`,
-        `${name}Option${index}`,
-      ),
+        pointer: `${pointer}/oneOf/${index}`,
+        suggestedName: `${name}Option${index}`,
+      }),
     );
   }
   if (schema.anyOf) {
     schema.anyOf.forEach((sub, index) =>
-      traverse(
-        sub as JsonSchema,
+      traverse({
+        schema: sub as JsonSchema,
         registry,
         references,
-        `${pointer}/anyOf/${index}`,
-        `${name}Option${index}`,
-      ),
+        pointer: `${pointer}/anyOf/${index}`,
+        suggestedName: `${name}Option${index}`,
+      }),
     );
   }
   if (schema.allOf) {
     schema.allOf.forEach((sub, index) =>
-      traverse(
-        sub as JsonSchema,
+      traverse({
+        schema: sub as JsonSchema,
         registry,
         references,
-        `${pointer}/allOf/${index}`,
-        `${name}Part${index}`,
-      ),
+        pointer: `${pointer}/allOf/${index}`,
+        suggestedName: `${name}Part${index}`,
+      }),
     );
   }
 };
