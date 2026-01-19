@@ -11,6 +11,7 @@ export interface GenerateTypeDefinitionParams {
   schema: JsonSchema;
   rootSchema: JsonSchema;
   registry?: TypeNameRegistry;
+  pointer: string;
 }
 
 type GenerateTypeDefinition = (
@@ -22,11 +23,21 @@ export const generateTypeDefinition: GenerateTypeDefinition = ({
   schema,
   rootSchema,
   registry,
+  pointer,
 }) => {
   const jsDoc = generateJSDoc(schema);
   // Trust the provided name from the registry, do not re-normalize it
   const typeName = name;
-  const typeDefinition = getTypeFromSchema({ schema, rootSchema, registry });
+  
+  // We are generating the definition for 'pointer', so we do NOT want to look it up in the registry
+  // (otherwise we'd just get the name back). We want the structure.
+  const typeDefinition = getTypeFromSchema({ 
+    schema, 
+    rootSchema, 
+    registry, 
+    pointer,
+    lookupInRegistry: false 
+  });
 
   // Determine if this should be a type alias or interface
   const isTypeAlias = shouldUseTypeAlias({ schema, typeDefinition });
@@ -43,11 +54,28 @@ export interface GetTypeFromSchemaParams {
   schema: JsonSchema;
   rootSchema: JsonSchema;
   registry?: TypeNameRegistry;
+  pointer: string;
+  lookupInRegistry?: boolean;
 }
 
 type GetTypeFromSchema = (params: GetTypeFromSchemaParams) => string;
 
-const getTypeFromSchema: GetTypeFromSchema = ({ schema, rootSchema, registry }) => {
+const getTypeFromSchema: GetTypeFromSchema = ({ 
+  schema, 
+  rootSchema, 
+  registry, 
+  pointer,
+  lookupInRegistry = true 
+}) => {
+  // 0. Registry Lookup (Strict Mode)
+  // If this pointer is registered, return the name immediately.
+  if (lookupInRegistry && registry) {
+    const registeredName = registry.get(pointer);
+    if (registeredName) {
+      return registeredName;
+    }
+  }
+
   // 1. Handle $ref using Registry if available
   if (schema.$ref) {
     if (registry) {
@@ -67,11 +95,26 @@ const getTypeFromSchema: GetTypeFromSchema = ({ schema, rootSchema, registry }) 
 
   // 2. Check for Combinators (oneOf, anyOf, allOf)
   if (schema.oneOf) {
-    combinatorType = generateUnionType({ schemas: schema.oneOf, rootSchema, registry });
+    combinatorType = generateUnionType({ 
+      schemas: schema.oneOf, 
+      rootSchema, 
+      registry, 
+      pointer: `${pointer}/oneOf`
+    });
   } else if (schema.anyOf) {
-    combinatorType = generateUnionType({ schemas: schema.anyOf, rootSchema, registry });
+    combinatorType = generateUnionType({ 
+      schemas: schema.anyOf, 
+      rootSchema, 
+      registry, 
+      pointer: `${pointer}/anyOf`
+    });
   } else if (schema.allOf) {
-    combinatorType = generateIntersectionType({ schemas: schema.allOf, rootSchema, registry });
+    combinatorType = generateIntersectionType({ 
+      schemas: schema.allOf, 
+      rootSchema, 
+      registry, 
+      pointer: `${pointer}/allOf`
+    });
   }
 
   // 3. Check for Object Properties or explicit object type
@@ -82,7 +125,12 @@ const getTypeFromSchema: GetTypeFromSchema = ({ schema, rootSchema, registry }) 
 
   if (hasObjectDefinition) {
     if (schema.properties || schema.additionalProperties) {
-      objectType = generateObjectType({ schema, rootSchema, registry });
+      objectType = generateObjectType({ 
+        schema, 
+        rootSchema, 
+        registry, 
+        pointer 
+      });
     } else if (schema.type === "object" && !combinatorType) {
       objectType = "Record<string, any>";
     }
@@ -133,11 +181,32 @@ const getTypeFromSchema: GetTypeFromSchema = ({ schema, rootSchema, registry }) 
       return "null";
     case "array":
       if (schema.items) {
-        const itemType = getTypeFromSchema({ schema: schema.items, rootSchema, registry });
-        if (itemType.includes(" | ") || itemType.includes(" & ")) {
-          return `(${itemType})[]`;
+        if (Array.isArray(schema.items)) {
+            // Tuple or multiple items?
+            // standard JSON schema "items" as array is a tuple
+            const tupleTypes = schema.items.map((item, index) => 
+                getTypeFromSchema({ 
+                    schema: item, 
+                    rootSchema, 
+                    registry, 
+                    pointer: `${pointer}/items/${index}`,
+                    lookupInRegistry: true
+                })
+            );
+            return `[${tupleTypes.join(", ")}]`;
+        } else {
+            const itemType = getTypeFromSchema({ 
+                schema: schema.items, 
+                rootSchema, 
+                registry, 
+                pointer: `${pointer}/items`,
+                lookupInRegistry: true
+            });
+            if (itemType.includes(" | ") || itemType.includes(" & ")) {
+                return `(${itemType})[]`;
+            }
+            return `${itemType}[]`;
         }
-        return `${itemType}[]`;
       }
       return "any[]";
     default:
@@ -149,6 +218,7 @@ export interface GenerateUnionTypeParams {
   schemas: JsonSchema[];
   rootSchema: JsonSchema;
   registry?: TypeNameRegistry;
+  pointer: string;
 }
 
 type GenerateUnionType = (params: GenerateUnionTypeParams) => string;
@@ -157,8 +227,15 @@ const generateUnionType: GenerateUnionType = ({
   schemas,
   rootSchema,
   registry,
+  pointer
 }) => {
-  const types = schemas.map((s) => getTypeFromSchema({ schema: s, rootSchema, registry }));
+  const types = schemas.map((s, index) => getTypeFromSchema({ 
+      schema: s, 
+      rootSchema, 
+      registry,
+      pointer: `${pointer}/${index}`,
+      lookupInRegistry: true
+    }));
   return types.join(" | ");
 };
 
@@ -166,6 +243,7 @@ export interface GenerateIntersectionTypeParams {
   schemas: JsonSchema[];
   rootSchema: JsonSchema;
   registry?: TypeNameRegistry;
+  pointer: string;
 }
 
 type GenerateIntersectionType = (params: GenerateIntersectionTypeParams) => string | null;
@@ -174,8 +252,15 @@ const generateIntersectionType: GenerateIntersectionType = ({
   schemas,
   rootSchema,
   registry,
+  pointer
 }) => {
-  const types = schemas.map((s) => getTypeFromSchema({ schema: s, rootSchema, registry }));
+  const types = schemas.map((s, index) => getTypeFromSchema({ 
+      schema: s, 
+      rootSchema, 
+      registry,
+      pointer: `${pointer}/${index}`,
+      lookupInRegistry: true
+    }));
   // Filter out 'any' and 'unknown' to prevent them from poisoning the intersection
   const meaningfulTypes = types.filter((t) => t !== "any" && t !== "unknown");
 
@@ -195,14 +280,25 @@ const resolveLegacyRef: ResolveLegacyRef = ({ ref, rootSchema, registry }) => {
   // Legacy Logic
   const resolved = resolveRefObject({ ref, rootSchema });
   if (resolved && Object.keys(resolved).length > 0) {
+    // If it's a simple type alias (no properties, etc), we might want to recurse to get the base type?
+    // But we don't have the pointer for the ref target here easily without resolving it.
+    // For legacy fallback, we can just use the path name or recurse if simple.
+    
     if (
       resolved.type &&
       !resolved.properties &&
       !resolved.items &&
       !resolved.oneOf
     ) {
-      // It's a simple alias, recurse
-      return getTypeFromSchema({ schema: resolved, rootSchema, registry });
+        // We don't have the pointer of the resolved schema here to pass safely.
+        // But this is fallback legacy logic anyway.
+      return getTypeFromSchema({ 
+          schema: resolved, 
+          rootSchema, 
+          registry, 
+          pointer: "#/legacy-fallback", 
+          lookupInRegistry: false 
+        });
     }
     const parts = ref.split("/");
     return toPascalCase(parts[parts.length - 1]);
@@ -267,6 +363,7 @@ export interface GenerateObjectTypeParams {
   schema: JsonSchema;
   rootSchema: JsonSchema;
   registry?: TypeNameRegistry;
+  pointer: string;
 }
 
 type GenerateObjectType = (params: GenerateObjectTypeParams) => string;
@@ -275,6 +372,7 @@ const generateObjectType: GenerateObjectType = ({
   schema,
   rootSchema,
   registry,
+  pointer,
 }) => {
   if (!schema.properties && !schema.additionalProperties) {
     return "Record<string, any>";
@@ -285,7 +383,13 @@ const generateObjectType: GenerateObjectType = ({
   if (schema.properties) {
     Object.entries(schema.properties).forEach(([key, propSchema]) => {
       const isRequired = schema.required?.includes(key) ?? false;
-      const propType = getTypeFromSchema({ schema: propSchema, rootSchema, registry });
+      const propType = getTypeFromSchema({ 
+        schema: propSchema, 
+        rootSchema, 
+        registry,
+        pointer: `${pointer}/properties/${key}`,
+        lookupInRegistry: true
+      });
       const optional = isRequired ? "" : "?";
       lines.push(`  ${key}${optional}: ${propType};`);
     });
@@ -297,6 +401,8 @@ const generateObjectType: GenerateObjectType = ({
         schema: schema.additionalProperties,
         rootSchema,
         registry,
+        pointer: `${pointer}/additionalProperties`,
+        lookupInRegistry: true
       });
       lines.push(`  [key: string]: ${valueType};`);
     } else if (schema.additionalProperties === true) {

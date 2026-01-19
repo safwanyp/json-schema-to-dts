@@ -57,9 +57,16 @@ describe("Integration Tests", () => {
     // Check file content
     const content = fs.readFileSync(outputFile, "utf-8");
     expect(content).toContain("interface User");
-    expect(content).toContain("id: string;");
-    expect(content).toContain("name: string;");
-    expect(content).toContain("age?: number;");
+    // Strict mode: properties are named types
+    expect(content).toContain("id: UserId;");
+    expect(content).toContain("name: UserName;");
+    expect(content).toContain("age?: UserAge;");
+    
+    // Check definitions of extracted types
+    expect(content).toContain("type UserId = string");
+    expect(content).toContain("type UserName = string");
+    expect(content).toContain("type UserAge = number");
+    
     expect(content).toContain("export { User };");
     expect(content).toContain("A user in the system");
   });
@@ -206,7 +213,9 @@ describe("Integration Tests", () => {
 
     expect(content).toContain("interface Address");
     expect(content).toContain("interface Person");
-    expect(content).toContain("address?: Address;");
+    // Strict mode: property 'address' gets its own type 'PersonAddress' which aliases 'Address'
+    expect(content).toContain("address?: PersonAddress;");
+    expect(content).toContain("type PersonAddress = Address");
   });
 
   it("should handle multiple schema files", async () => {

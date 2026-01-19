@@ -10,16 +10,31 @@ export interface TypeNameRegistry {
   get(pointer: string): string | undefined;
 
   /**
+   * Get the original base name requested for a pointer
+   */
+  getBaseName(pointer: string): string | undefined;
+
+  /**
    * Get all registered pointers and their names
    */
   getAll(): Map<string, string>;
+
+  /**
+   * Remove a registration (used for cleanup/optimization)
+   */
+  delete(pointer: string): void;
 }
 
 type CreateTypeNameRegistry = () => TypeNameRegistry;
 type GetUniqueTypeName = (baseName: string) => string;
 
+interface RegistryEntry {
+  name: string;
+  baseName: string;
+}
+
 export const createTypeNameRegistry: CreateTypeNameRegistry = () => {
-  const jsonPointerToTypeNameMap = new Map<string, string>();
+  const jsonPointerToEntryMap = new Map<string, RegistryEntry>();
   const typeNameCount = new Map<string, number>();
 
   const getUniqueTypeName: GetUniqueTypeName = (baseName) => {
@@ -35,21 +50,34 @@ export const createTypeNameRegistry: CreateTypeNameRegistry = () => {
 
   return {
     register(pointer, name) {
-      if (jsonPointerToTypeNameMap.has(pointer)) {
-        return jsonPointerToTypeNameMap.get(pointer)!;
+      if (jsonPointerToEntryMap.has(pointer)) {
+        return jsonPointerToEntryMap.get(pointer)!.name;
       }
 
       const uniqueName = getUniqueTypeName(name);
-      jsonPointerToTypeNameMap.set(pointer, uniqueName);
+      jsonPointerToEntryMap.set(pointer, { name: uniqueName, baseName: name });
       return uniqueName;
     },
 
     get(pointer) {
-      return jsonPointerToTypeNameMap.get(pointer);
+      return jsonPointerToEntryMap.get(pointer)?.name;
+    },
+
+    getBaseName(pointer) {
+      return jsonPointerToEntryMap.get(pointer)?.baseName;
     },
 
     getAll() {
-      return jsonPointerToTypeNameMap;
+      // Convert internal map to Map<pointer, name> for compatibility
+      const result = new Map<string, string>();
+      for (const [pointer, entry] of jsonPointerToEntryMap) {
+        result.set(pointer, entry.name);
+      }
+      return result;
     },
+
+    delete(pointer) {
+      jsonPointerToEntryMap.delete(pointer);
+    }
   };
 };

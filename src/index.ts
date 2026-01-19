@@ -55,6 +55,7 @@ export const toTypes: ToTypes = async (config) => {
             schema: fragment,
             rootSchema: schema,
             registry,
+            pointer,
           });
           typeDefinitions.push(result.definition);
           exportedTypes.push(result.typeName);

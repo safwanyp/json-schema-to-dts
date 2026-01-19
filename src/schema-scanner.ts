@@ -34,6 +34,37 @@ export const scanSchema: ScanSchema = ({ schema, registry, rootPointer = "#" }) 
       registry.register(ref, name);
     }
   });
+
+  // Pass 3: Cleanup redundant aliases (Strict Naming)
+  // If a registered type is just a proxy ($ref) to another registered type,
+  // and they share the same base name request, we should drop the proxy
+  // to allow the generator to use the target type directly.
+  const allEntries = Array.from(registry.getAll().keys());
+
+  for (const pointer of allEntries) {
+    const fragment = resolvePointer(schema, pointer);
+    if (fragment && fragment.$ref) {
+      // Only handle internal references
+      if (fragment.$ref.startsWith("#")) {
+         const targetPointer = fragment.$ref;
+         
+         // Check if target is registered
+         const targetName = registry.get(targetPointer);
+         if (targetName) {
+            const myBaseName = registry.getBaseName(pointer);
+            const targetBaseName = registry.getBaseName(targetPointer);
+            
+            // If the requested base names are identical, this alias is redundant
+            // because it would result in Name_1 = Name.
+            // By deleting it, we force the generator to look up the property/ref directly,
+            // which will resolve to the target type, using the target's name.
+            if (myBaseName && targetBaseName && myBaseName === targetBaseName) {
+               registry.delete(pointer);
+            }
+         }
+      }
+    }
+  }
 };
 
 export interface TraverseParams {
@@ -62,23 +93,9 @@ const traverse: Traverse = ({
     references.add(schema.$ref);
   }
 
-  // Rule 2: Skip registering if it is a simple ref (just a pointer alias)
-  // We check if keys are just $ref (or $ref + description/title? optional, but strict simple ref is safer)
-  // If we don't register it, the generator will just use the target type directly.
-  if (schema.$ref && Object.keys(schema).length === 1) {
-    return;
-  }
-
   // Determine the best name for this location
   // If explicitly titled, use that. Otherwise use the path-based suggested name.
-  // Note: We prefer the suggestedName (path-based) for consistency unless title is distinct?
-  // Actually, usually 'title' in definitions is the canonical name.
-  // But for nested properties, path based is better.
-
-  // Logic:
-  // 1. If we are at root, definitions, or $defs, we MUST use the key/title provided there to be canonical.
-  // 2. If we are deep in properties, we use suggestedName (path-based).
-
+  
   let name = suggestedName;
 
   const isRootOrDefinition =
@@ -93,19 +110,15 @@ const traverse: Traverse = ({
     name = toPascalCase(schema.title);
   }
 
-  // Rule 1: Extract objects even if untitled
-  // Register this location if it looks like a distinct type definition
-  const isDefinition =
-    isRootOrDefinition ||
-    (schema.type === "object" && !schema.$ref) || // Extract inline objects
-    !!schema.enum; // Extract inline enums too? Let's stick to objects for now per request.
+  // Rule 1 & Strictness: Extract everything that has a name.
+  // This ensures properties, items, and definitions are all named.
+  const isDefinition = !!name;
 
-  if (isDefinition && name) {
+  if (isDefinition) {
     registry.register(pointer, name);
   }
 
-  // Scan definitions - Reset naming context?
-  // Definitions are usually independent, so we shouldn't prefix them with the parent name.
+  // Scan definitions
   if (schema.definitions) {
     for (const [key, def] of Object.entries(schema.definitions)) {
       const subName = toPascalCase(key);
@@ -132,7 +145,7 @@ const traverse: Traverse = ({
     }
   }
 
-  // Scan properties - Rule 3: Prefixing
+  // Scan properties
   if (schema.properties) {
     for (const [key, prop] of Object.entries(schema.properties)) {
       // Append key to parent name for path-based naming
@@ -160,9 +173,6 @@ const traverse: Traverse = ({
         });
       });
     } else {
-      // Arrays often wrap a type. If it's a list of Users, we often want 'User'.
-      // But if it's 'Items', we might want 'ParentItems'.
-      // Let's keep prefixing but maybe simplistic.
       traverse({
         schema: schema.items as JsonSchema,
         registry,
@@ -188,41 +198,64 @@ const traverse: Traverse = ({
   }
 
   // Scan combinators
-  // For combinators, we might NOT want to prefix with "Option0", "Option1" if they are simple refs.
-  // But traverse will handle the "Simple Ref" check at the top of the recursive call.
+  // For combinators, we check if the member is a Ref.
+  // If it is a Ref, we DO NOT suggest a name, so that no alias is registered.
+  // This allows the generator to use the Ref's target type directly in the union.
+  // If it is NOT a Ref (inline object), we suggest a name so it gets extracted.
+  
   if (schema.oneOf) {
-    schema.oneOf.forEach((sub, index) =>
+    schema.oneOf.forEach((sub, index) => {
+      const isRef = !!sub.$ref;
+      const subName = isRef ? "" : `${name}Option${index}`;
       traverse({
         schema: sub as JsonSchema,
         registry,
         references,
         pointer: `${pointer}/oneOf/${index}`,
-        suggestedName: `${name}Option${index}`,
-      }),
-    );
+        suggestedName: subName,
+      });
+    });
   }
   if (schema.anyOf) {
-    schema.anyOf.forEach((sub, index) =>
+    schema.anyOf.forEach((sub, index) => {
+      const isRef = !!sub.$ref;
+      const subName = isRef ? "" : `${name}Option${index}`;
       traverse({
         schema: sub as JsonSchema,
         registry,
         references,
         pointer: `${pointer}/anyOf/${index}`,
-        suggestedName: `${name}Option${index}`,
-      }),
-    );
+        suggestedName: subName,
+      });
+    });
   }
   if (schema.allOf) {
-    schema.allOf.forEach((sub, index) =>
+    schema.allOf.forEach((sub, index) => {
+      const isRef = !!sub.$ref;
+      const subName = isRef ? "" : `${name}Part${index}`;
       traverse({
         schema: sub as JsonSchema,
         registry,
         references,
         pointer: `${pointer}/allOf/${index}`,
-        suggestedName: `${name}Part${index}`,
-      }),
-    );
+        suggestedName: subName,
+      });
+    });
   }
+};
+
+const resolvePointer = (root: JsonSchema, pointer: string): JsonSchema | null => {
+  if (pointer === "#") return root;
+  const pathParts = pointer.replace(/^#\//, "").split("/");
+  let current: any = root;
+  for (const part of pathParts) {
+    if (current && typeof current === "object" && part in current) {
+      current = current[part];
+    } else {
+      return null;
+    }
+  }
+  return current;
 };
 
 type ToPascalCase = (str: string) => string;

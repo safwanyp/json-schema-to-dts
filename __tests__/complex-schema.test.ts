@@ -52,7 +52,12 @@ describe("Complex Schema Generation", () => {
 
     // Check for Unions (oneOf)
     // Programme should be a union of LoyaltyProgramme and CampaignProgramme
+    // Improved logic: If union members are Refs, use them directly without aliases.
     expect(content).toContain("LoyaltyProgramme | CampaignProgramme");
+    
+    // We expect NO alias wrappers for these Refs
+    expect(content).not.toContain("type ProgrammeOption0 = LoyaltyProgramme");
+    expect(content).not.toContain("type ProgrammeOption1 = CampaignProgramme");
 
     // Check for deep nested definitions
     // The schema has definitions for ProgrammeOfferId inside offers items
@@ -60,11 +65,21 @@ describe("Complex Schema Generation", () => {
     expect(content).toMatch(/(interface|type) ProgrammeOfferId/);
     expect(content).toContain("export { ProgrammeOfferId };");
 
-    // Check that ProgrammeOffer references the generated ID type
-    // We need to see if the content matches something like:
-    // id?: ProgrammeOfferId;
-    // or
-    // id: ProgrammeOfferId;
-    expect(content).toMatch(/id\??:\s*ProgrammeOfferId/);
+    // Check that ProgrammeOffer references the generated ID type via its property alias
+    // strict mode: property 'id' gets type 'ProgrammeOffersItemId' which aliases 'ProgrammeOfferId'
+    expect(content).toMatch(/id\??:\s*ProgrammeOffersItemId/);
+    expect(content).toContain("type ProgrammeOffersItemId = ProgrammeOfferId");
+
+    // Check for redundancy cleanup
+    // We should NOT see ProviderType_1 = ProviderType
+    // We should see ProviderType defined once (as enum or whatever)
+    // And Provider properties referencing ProviderType directly (via ProviderType_1 removal)
+    // Actually, due to strict naming, Provider.type -> ProviderType (property alias).
+    // But since it matches base name, we removed it.
+    // So Provider.type -> ProviderType (definition).
+    
+    // Ensure no _1 suffixes for simple redundant aliases
+    expect(content).not.toContain("type ProviderType_1");
+    expect(content).toContain("type ProviderType = ");
   });
 });
