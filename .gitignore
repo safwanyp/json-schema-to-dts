@@ -97,3 +97,6 @@ jspm_packages/
 # Temporary folders
 tmp/
 temp/
+
+# Test generated files
+__tests__/output/
