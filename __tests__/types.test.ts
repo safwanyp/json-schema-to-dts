@@ -1,5 +1,5 @@
-import { describe, it, expect } from "vitest";
-import { JsonSchema, ToTypesConfig, TypeGenerationOptions } from "../src/types";
+import { describe, it, expect } from 'vitest';
+import { JsonSchema, ToTypesConfig, TypeGenerationOptions } from '../src/types';
 
 describe("Type Definitions", () => {
   describe("JsonSchema interface", () => {
