@@ -66,15 +66,18 @@ Input (`user.schema.json`):
 Output (`user.d.ts`):
 
 ```typescript
-export interface User {
+interface User {
   id?: string;
   role?: "ADMIN" | "USER";
   meta?: UserMeta;
 }
 
-export interface UserMeta {
+interface UserMeta {
   created?: string;
 }
+
+export { User };
+export { UserMeta };
 ```
 
 ## API

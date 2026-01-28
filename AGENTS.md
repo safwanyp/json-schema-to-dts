@@ -20,8 +20,8 @@ This document contains guidelines for AI agents and developers working on this r
 ### Linting & Formatting
 
 - **Type Check:** `pnpm dlx tsc --noEmit`
-- **Formatting:** Follow the existing style (2 spaces indentation, single quotes).
-- **Linting:** No explicit linter is currently configured. Rely on `tsconfig.json` strict mode and existing code patterns.
+- **Formatting:** Use `pnpm run fmt` (uses `oxfmt`).
+- **Linting:** Use `pnpm run fmt:check` to verify formatting. Rely on `tsconfig.json` strict mode for type safety.
 
 ## 2. Code Style & Conventions
 

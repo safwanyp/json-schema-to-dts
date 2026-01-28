@@ -11,14 +11,14 @@ The conversion process is a **Two-Pass Strategy**:
 
 ### Key Components
 
-#### 1. Schema Registry (`src/schema-context.ts`)
+#### 1. Schema Registry (`src/registry/type-name-registry.ts`)
 
 A closure-based state container that maps JSON Pointers (e.g., `#/definitions/User`) to TypeScript Type Names (e.g., `User`).
 
 - **Responsibility:** Ensures every type has a unique, consistent name throughout the generation process.
 - **Conflict Resolution:** Automatically handles name collisions by appending suffixes if needed (e.g., `Status_1`).
 
-#### 2. Schema Scanner (`src/schema-scanner.ts`)
+#### 2. Schema Scanner (`src/scanning/scanner.ts`)
 
 Responsible for traversing the JSON Schema to populate the Registry.
 
@@ -29,11 +29,11 @@ Responsible for traversing the JSON Schema to populate the Registry.
 - **Pass 2 (Reference Collection):** Scans for all `$ref` pointers
   - If a referenced pointer wasn't registered in Pass 1 (e.g., a deep pointer to an untitled sub-schema), it registers it on the fly to ensure valid generated code.
 
-#### 3. Schema Parser (`src/schema-parser.ts`)
+#### 3. Schema Parser (`src/generation/generator.ts`)
 
-A collection of pure functions that convert a specific Schema node into a TypeScript code string.
+A collection of functions that convert a specific Schema node into a TypeScript code string.
 
-- **`getTypeFromSchema`:** Determines the TS type (string, number, array, ref, etc.).
+- **`buildTypeFromSchema`:** Determines the TS type (string, number, array, ref, etc.).
 - **`generateTypeDefinition`:** The main entry point. Generates `interface X { ... }` or `type X = ...`.
 - **Smart Intersections:** Handling of `allOf` includes logic to filter out "noise" (like `any` or validation keywords) to preserve strict typing.
 
