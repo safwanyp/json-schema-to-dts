@@ -18,9 +18,7 @@ import {
   buildObjectType,
   buildArrayType,
   hasObjectDefinition,
-  mapJsonTypeToTs,
 } from './type-builders';
-
 /**
  * Result of generating a type definition.
  */
