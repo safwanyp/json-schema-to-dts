@@ -1,5 +1,5 @@
 {
-  "name": "json-schema-to-dts",
+  "name": "@safwanyp/json-schema-to-dts",
   "version": "0.1.0",
   "description": "Convert JSON Schema to TypeScript types with JSDoc annotations",
   "keywords": [
@@ -9,7 +9,7 @@
     "typescript"
   ],
   "license": "MIT",
-  "author": "",
+  "author": "Safwan Parkar",
   "files": [
     "LICENSE",
     "README.md",
