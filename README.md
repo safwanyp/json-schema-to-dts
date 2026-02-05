@@ -1,4 +1,4 @@
-# json-schema-to-dts
+# @safwanyp/json-schema-to-dts
 
 A robust TypeScript package that converts complex JSON Schema files to TypeScript type definitions (.d.ts).
 
@@ -18,15 +18,15 @@ A robust TypeScript package that converts complex JSON Schema files to TypeScrip
 ## Installation
 
 ```bash
-pnpm add json-schema-to-dts
+pnpm add @safwanyp/json-schema-to-dts
 # or
-npm install json-schema-to-dts
+npm install @safwanyp/json-schema-to-dts
 ```
 
 ## Usage
 
 ```typescript
-import { toTypes } from "json-schema-to-dts";
+import { toTypes } from "@safwanyp/json-schema-to-dts";
 
 // Convert all JSON Schema files in a directory to TypeScript definition files
 await toTypes({
