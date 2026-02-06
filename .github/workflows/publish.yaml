@@ -1,0 +1,70 @@
+name: Publish to NPM
+
+on:
+  workflow_dispatch:
+    inputs:
+      release_type:
+        type: choice
+        description: "Select the type of release - release or prerelease"
+        required: true
+        options:
+          - release
+          - prerelease
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    permissions:
+      id-token: write
+      contents: read
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.PUBLISH_TOKEN }}
+
+      - name: Set Git user details
+        run: |
+          git config user.name "safwanyp CI/CD"
+          git config user.email "safwanparkar6@gmail.com"
+
+      - name: Setup NodeJS
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          registry-url: "https://registry.npmjs.org"
+
+      - name: Install pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 10
+          run_install: false
+
+      - name: Install releasing tools
+        run: pnpm add -g standard-version commit-and-tag-version
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Build package
+        run: pnpm build
+
+      - name: Run tests
+        run: pnpm test
+
+      - name: Create version
+        run: |
+          if [ "${{ inputs.release_type }}" = "release" ]; then
+            pnpm release
+          else
+            pnpm pre-release
+          fi
+
+      - name: Push tags to origin
+        run: git push --follow-tags
+
+      - name: Publish to NPM
+        run: pnpm publish --access public
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_PUBLISH }}

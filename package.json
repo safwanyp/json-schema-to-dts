@@ -34,7 +34,12 @@
     "test:coverage": "vitest run --coverage",
     "prepublishOnly": "pnpm run build && pnpm test",
     "fmt": "oxfmt",
-    "fmt:check": "oxfmt --check"
+    "fmt:check": "oxfmt --check",
+    "release:base": "standard-version -t '@safwanyp/json-schema-to-dts@'",
+    "pre-release": "pnpm run release:base --prerelease rc",
+    "pre-release:check": "pnpm run pre-release --dry-run",
+    "release": "pnpm run release:base",
+    "release:check": "pnpm run release --dry-run"
   },
   "dependencies": {
     "glob": "^13.0.0"
@@ -43,6 +48,7 @@
     "@types/node": "20",
     "@vitest/coverage-v8": "^4.0.17",
     "oxfmt": "^0.24.0",
+    "standard-version": "^9.5.0",
     "typescript": "^5.9.3",
     "vitest": "^4.0.17"
   },
