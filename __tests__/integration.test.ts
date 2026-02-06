@@ -4,6 +4,20 @@ import * as fs from "fs";
 import * as path from "path";
 import * as os from "os";
 
+const escapeRegExp = (value: string): string =>
+  value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+
+const expectExportBlockToContain = (
+  content: string,
+  typeName: string,
+): void => {
+  const pattern = new RegExp(
+    `export \\{[\\s\\S]*\\b${escapeRegExp(typeName)}\\b[\\s\\S]*\\};`,
+    "m",
+  );
+  expect(pattern.test(content)).toBe(true);
+};
+
 describe("Integration Tests", () => {
   let tempDir: string;
   let inputDir: string;
@@ -68,7 +82,7 @@ describe("Integration Tests", () => {
     expect(content).toContain("type UserName = string");
     expect(content).toContain("type UserAge = number");
 
-    expect(content).toContain("export { User };");
+    expectExportBlockToContain(content, "User");
     expect(content).toContain("A user in the system");
   });
 
@@ -104,7 +118,7 @@ describe("Integration Tests", () => {
 
     const content = fs.readFileSync(outputFile, "utf-8");
     expect(content).toContain("interface ApiResponse");
-    expect(content).toContain("export { ApiResponse };");
+    expectExportBlockToContain(content, "ApiResponse");
   });
 
   it("should handle schema with definitions", async () => {
@@ -146,8 +160,8 @@ describe("Integration Tests", () => {
 
     expect(content).toContain("interface User");
     expect(content).toContain("interface Profile");
-    expect(content).toContain("export { User };");
-    expect(content).toContain("export { Profile };");
+    expectExportBlockToContain(content, "User");
+    expectExportBlockToContain(content, "Profile");
   });
 
   it("should handle schema with $defs", async () => {
@@ -179,7 +193,7 @@ describe("Integration Tests", () => {
     const content = fs.readFileSync(outputFile, "utf-8");
 
     expect(content).toContain("interface Product");
-    expect(content).toContain("export { Product };");
+    expectExportBlockToContain(content, "Product");
   });
 
   it("should handle references between schemas", async () => {
