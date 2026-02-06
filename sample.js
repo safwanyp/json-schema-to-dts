@@ -5,5 +5,5 @@ import { toTypes } from "./dist/index.js";
 await toTypes({
   pathToJsonSchemas: "./test-schemas",
   pathToOutputDirectory: "./generated-types",
-  generatedTypesExportsFormat: "ROOT_ONLY",
+  generatedTypesExportsFormat: "UNIQUE_EXPORTS",
 });

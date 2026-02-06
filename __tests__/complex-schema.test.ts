@@ -3,6 +3,20 @@ import * as fs from "fs";
 import * as path from "path";
 import { toTypes } from "../src/index";
 
+const escapeRegExp = (value: string): string =>
+  value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+
+const expectExportBlockToContain = (
+  content: string,
+  typeName: string,
+): void => {
+  const pattern = new RegExp(
+    `export \\{[\\s\\S]*\\b${escapeRegExp(typeName)}\\b[\\s\\S]*\\};`,
+    "m",
+  );
+  expect(pattern.test(content)).toBe(true);
+};
+
 describe("Complex Schema Generation", () => {
   const outputDir = path.join(__dirname, "output");
   const schemaDir = path.join(__dirname, "../test-schemas");
@@ -49,7 +63,7 @@ describe("Complex Schema Generation", () => {
 
     // Let's verify that basic parts exist
     expect(content).toMatch(/(interface|type) Programme/);
-    expect(content).toContain("export { Programme };");
+    expectExportBlockToContain(content, "Programme");
 
     // Check for Unions (oneOf)
     // Programme should be a union of LoyaltyProgramme and CampaignProgramme
@@ -64,7 +78,7 @@ describe("Complex Schema Generation", () => {
     // The schema has definitions for ProgrammeOfferId inside offers items
     // We expect it to be exported
     expect(content).toMatch(/(interface|type) ProgrammeOfferId/);
-    expect(content).toContain("export { ProgrammeOfferId };");
+    expectExportBlockToContain(content, "ProgrammeOfferId");
 
     // Check that ProgrammeOffer references the generated ID type via its property alias
     // strict mode: property 'id' gets type 'ProgrammeOffersItemId' which aliases 'ProgrammeOfferId'

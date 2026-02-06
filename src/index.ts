@@ -175,7 +175,7 @@ const writeOutputFile = ({
     const content =
       typeDefinitions.join("\n\n") +
       "\n\n" +
-      uniqueExports.map((typeName) => `export { ${typeName} };`).join("\n") +
+      `export { \n${uniqueExports.join(",\n")} \n};` +
       "\n";
     fs.writeFileSync(outputFilePath, content, "utf-8");
   } else if (generatedTypesExportsFormat === "ROOT_ONLY") {
