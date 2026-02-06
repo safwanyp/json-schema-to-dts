@@ -324,4 +324,67 @@ describe("Integration Tests", () => {
 
     expect(fs.existsSync(path.join(deepOutputDir, "test.d.ts"))).toBe(true);
   });
+
+  it("should export only the root type when generatedTypesExportsFormat is ROOT_ONLY", async () => {
+    const schema = {
+      title: "User",
+      description: "A user in the system",
+      type: "object",
+      properties: {
+        id: { type: "string", description: "User ID" },
+        name: { type: "string", description: "Full name" },
+        age: { type: "number", description: "Age in years" },
+      },
+      required: ["id", "name"],
+    };
+
+    fs.writeFileSync(
+      path.join(inputDir, "entities.schema.json"),
+      JSON.stringify(schema, null, 2),
+    );
+
+    await toTypes({
+      pathToJsonSchemas: inputDir,
+      pathToOutputDirectory: outputDir,
+      generatedTypesExportsFormat: "ROOT_ONLY",
+    });
+
+    const outputFile = path.join(outputDir, "entities.d.ts");
+    const content = fs.readFileSync(outputFile, "utf-8");
+
+    expect(content).toContain("export { User }");
+  });
+
+  it("should export all types when generatedTypesExportsFormat is UNIQUE_EXPORTS", async () => {
+    const schema = {
+      title: "User",
+      description: "A user in the system",
+      type: "object",
+      properties: {
+        id: { type: "string", description: "User ID" },
+        name: { type: "string", description: "Full name" },
+        age: { type: "number", description: "Age in years" },
+      },
+      required: ["id", "name"],
+    };
+
+    fs.writeFileSync(
+      path.join(inputDir, "entities.schema.json"),
+      JSON.stringify(schema, null, 2),
+    );
+
+    await toTypes({
+      pathToJsonSchemas: inputDir,
+      pathToOutputDirectory: outputDir,
+      generatedTypesExportsFormat: "UNIQUE_EXPORTS",
+    });
+
+    const outputFile = path.join(outputDir, "entities.d.ts");
+    const content = fs.readFileSync(outputFile, "utf-8");
+
+    expectExportBlockToContain(content, "User");
+    expectExportBlockToContain(content, "UserId");
+    expectExportBlockToContain(content, "UserName");
+    expectExportBlockToContain(content, "UserAge");
+  });
 });
