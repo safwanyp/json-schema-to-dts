@@ -2,7 +2,7 @@
  * Logic for deciding between `type` alias and `interface` declarations.
  */
 
-import { JsonSchema } from '../types';
+import { JsonSchema } from "../types";
 
 /**
  * Parameters for deciding the type declaration keyword.
@@ -43,7 +43,9 @@ export const shouldUseTypeAlias = ({
   }
 
   // Primitives must be type aliases
-  if (['string', 'number', 'boolean', 'array'].includes(schema.type as string)) {
+  if (
+    ["string", "number", "boolean", "array"].includes(schema.type as string)
+  ) {
     return true;
   }
 
@@ -58,12 +60,12 @@ export const shouldUseTypeAlias = ({
   }
 
   // Intersections must be type aliases
-  if (typeDefinition.includes(' & ')) {
+  if (typeDefinition.includes(" & ")) {
     return true;
   }
 
   // Non-object types or types not starting with { must be type aliases
-  if (schema.type !== 'object' || !typeDefinition.startsWith('{')) {
+  if (schema.type !== "object" || !typeDefinition.startsWith("{")) {
     return true;
   }
 
@@ -78,10 +80,10 @@ export const shouldUseTypeAlias = ({
  * @returns Object with keyword and separator
  */
 export const getDeclarationParts = (
-  isTypeAlias: boolean
+  isTypeAlias: boolean,
 ): { keyword: string; separator: string } => {
   return {
-    keyword: isTypeAlias ? 'type' : 'interface',
-    separator: isTypeAlias ? ' = ' : ' ',
+    keyword: isTypeAlias ? "type" : "interface",
+    separator: isTypeAlias ? " = " : " ",
   };
 };

@@ -3,8 +3,8 @@
  * Handles allOf schemas.
  */
 
-import { JsonSchema } from '../../types';
-import { TypeBuildContext, createChildContext } from './context';
+import { JsonSchema } from "../../types";
+import { TypeBuildContext, createChildContext } from "./context";
 
 /**
  * Parameters for building an intersection type.
@@ -36,17 +36,17 @@ export const buildIntersectionType = ({
     const childContext = createChildContext(
       parentContext,
       schema,
-      `allOf/${index}`
+      `allOf/${index}`,
     );
     return buildType(childContext);
   });
 
   // Filter out 'any' and 'unknown' to prevent them from poisoning the intersection
-  const meaningfulTypes = types.filter((t) => t !== 'any' && t !== 'unknown');
+  const meaningfulTypes = types.filter((t) => t !== "any" && t !== "unknown");
 
   if (meaningfulTypes.length === 0) {
     return null;
   }
 
-  return meaningfulTypes.join(' & ');
+  return meaningfulTypes.join(" & ");
 };

@@ -48,13 +48,15 @@ This document contains guidelines for AI agents and developers working on this r
   export async function toTypes(config: ToTypesConfig): Promise<void> { ... }
   ```
 - **Function Parameters:** Use a single object parameter pattern instead of multiple named parameters. This improves extensibility and makes optional parameters clearer.
+
   ```typescript
   // Good - single object parameter
   function processSchema({ inputPath, outputPath, options }: ProcessSchemaConfig): void { ... }
-  
+
   // Avoid - multiple named parameters
   function processSchema(inputPath: string, outputPath: string, options?: Options): void { ... }
   ```
+
 - **Imports:**
   - Use namespace imports for Node.js built-ins: `import * as fs from 'fs';`
   - Use named imports for project files: `import { SchemaParser } from './schema-parser';`

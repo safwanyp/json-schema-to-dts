@@ -2,7 +2,7 @@
  * JSDoc comment generation for TypeScript types.
  */
 
-import { JsonSchema } from '../types';
+import { JsonSchema } from "../types";
 
 /**
  * Generates a JSDoc comment block from schema metadata.
@@ -36,20 +36,20 @@ export const generateJSDoc = (schema: JsonSchema): string => {
 
   if (schema.description) {
     if (lines.length > 0) {
-      lines.push('');
+      lines.push("");
     }
     lines.push(schema.description);
   }
 
   if (schema.examples && schema.examples.length > 0) {
-    lines.push('');
-    lines.push('@example');
+    lines.push("");
+    lines.push("@example");
     lines.push(JSON.stringify(schema.examples[0], null, 2));
   }
 
   if (lines.length === 0) {
-    return '';
+    return "";
   }
 
-  return '/**\n * ' + lines.join('\n * ') + '\n */\n';
+  return "/**\n * " + lines.join("\n * ") + "\n */\n";
 };

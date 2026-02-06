@@ -5,23 +5,23 @@
  * with JSDoc annotations.
  */
 
-import * as fs from 'fs';
-import * as path from 'path';
-import { glob } from 'glob';
+import * as fs from "fs";
+import * as path from "path";
+import { glob } from "glob";
 
 // Re-export types
-export { JsonSchema, TypeGenerationOptions, ToTypesConfig } from './types';
+export { JsonSchema, TypeGenerationOptions, ToTypesConfig } from "./types";
 
 // Re-export generation utilities
-export { generateTypeDefinition, GeneratedType } from './generation';
+export { generateTypeDefinition, GeneratedType } from "./generation";
 
 // Internal imports
-import { JsonSchema, ToTypesConfig } from './types';
-import { createTypeNameRegistry } from './registry';
-import { scanSchema } from './scanning';
-import { generateTypeDefinition } from './generation';
-import { resolvePointer } from './resolution';
-import { GeneratedTypesExportFormat } from './types/config';
+import { JsonSchema, ToTypesConfig } from "./types";
+import { createTypeNameRegistry } from "./registry";
+import { scanSchema } from "./scanning";
+import { generateTypeDefinition } from "./generation";
+import { resolvePointer } from "./resolution";
+import { GeneratedTypesExportFormat } from "./types/config";
 
 /**
  * Convert JSON Schema files to TypeScript type definition files.
@@ -35,7 +35,11 @@ import { GeneratedTypesExportFormat } from './types/config';
  * });
  */
 export const toTypes = async (config: ToTypesConfig): Promise<void> => {
-  const { pathToJsonSchemas, pathToOutputDirectory, generatedTypesExportsFormat } = config;
+  const {
+    pathToJsonSchemas,
+    pathToOutputDirectory,
+    generatedTypesExportsFormat,
+  } = config;
 
   // Ensure output directory exists
   if (!fs.existsSync(pathToOutputDirectory)) {
@@ -43,7 +47,7 @@ export const toTypes = async (config: ToTypesConfig): Promise<void> => {
   }
 
   // Find all JSON schema files
-  const schemaFiles = await glob('**/*.json', {
+  const schemaFiles = await glob("**/*.json", {
     cwd: pathToJsonSchemas,
     absolute: false,
   });
@@ -59,7 +63,7 @@ export const toTypes = async (config: ToTypesConfig): Promise<void> => {
     } catch (error) {
       console.warn(
         `Failed to process schema file ${relativeSchemaPath}:`,
-        error
+        error,
       );
     }
   }
@@ -85,7 +89,7 @@ const processSchemaFile = async ({
   generatedTypesExportsFormat,
 }: ProcessSchemaFileParams): Promise<void> => {
   const fullSchemaPath = path.join(pathToJsonSchemas, relativeSchemaPath);
-  const schemaContent = fs.readFileSync(fullSchemaPath, 'utf-8');
+  const schemaContent = fs.readFileSync(fullSchemaPath, "utf-8");
   const schema: JsonSchema = JSON.parse(schemaContent);
 
   // Create a fresh registry for this schema
@@ -138,7 +142,7 @@ interface WriteOutputFileParams {
   pathToOutputDirectory: string;
   typeDefinitions: string[];
   exportedTypes: string[];
-  generatedTypesExportsFormat: GeneratedTypesExportFormat
+  generatedTypesExportsFormat: GeneratedTypesExportFormat;
 }
 
 /**
@@ -153,10 +157,10 @@ const writeOutputFile = ({
 }: WriteOutputFileParams): void => {
   // Generate output file path
   const outputFileName =
-    path.basename(relativeSchemaPath, '.json').replace('.schema', '') + '.d.ts';
+    path.basename(relativeSchemaPath, ".json").replace(".schema", "") + ".d.ts";
   const outputDir = path.join(
     pathToOutputDirectory,
-    path.dirname(relativeSchemaPath)
+    path.dirname(relativeSchemaPath),
   );
   const outputFilePath = path.join(outputDir, outputFileName);
 
@@ -166,22 +170,22 @@ const writeOutputFile = ({
   }
 
   // Write the type definitions with exports based on the specified format
-  if (generatedTypesExportsFormat === 'UNIQUE_EXPORTS') {
+  if (generatedTypesExportsFormat === "UNIQUE_EXPORTS") {
     const uniqueExports = [...new Set(exportedTypes)];
     const content =
-      typeDefinitions.join('\n\n') +
-      '\n\n' +
-      uniqueExports.map((typeName) => `export { ${typeName} };`).join('\n') +
-      '\n';
-    fs.writeFileSync(outputFilePath, content, 'utf-8');
-  } else if (generatedTypesExportsFormat === 'ROOT_ONLY') {
+      typeDefinitions.join("\n\n") +
+      "\n\n" +
+      uniqueExports.map((typeName) => `export { ${typeName} };`).join("\n") +
+      "\n";
+    fs.writeFileSync(outputFilePath, content, "utf-8");
+  } else if (generatedTypesExportsFormat === "ROOT_ONLY") {
     const rootTypeName = exportedTypes[0];
     const content =
-      typeDefinitions.join('\n\n') +
-      '\n\n' +
+      typeDefinitions.join("\n\n") +
+      "\n\n" +
       `export { ${rootTypeName} };` +
-      '\n';
-    fs.writeFileSync(outputFilePath, content, 'utf-8');
+      "\n";
+    fs.writeFileSync(outputFilePath, content, "utf-8");
   }
   console.log(`Generated: ${outputFilePath}`);
 };

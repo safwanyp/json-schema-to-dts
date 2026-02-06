@@ -2,9 +2,9 @@
  * Schema traversal logic for identifying and registering type definitions.
  */
 
-import { JsonSchema } from '../types';
-import { TypeNameRegistry } from '../registry';
-import { toPascalCase } from '../utils';
+import { JsonSchema } from "../types";
+import { TypeNameRegistry } from "../registry";
+import { toPascalCase } from "../utils";
 
 /**
  * Parameters for traversing a schema.
@@ -38,7 +38,7 @@ export const traverse = ({
   pointer,
   suggestedName,
 }: TraverseParams): void => {
-  if (!schema || typeof schema !== 'object') {
+  if (!schema || typeof schema !== "object") {
     return;
   }
 
@@ -51,9 +51,9 @@ export const traverse = ({
   let name = suggestedName;
 
   const isRootOrDefinition =
-    pointer === '#' ||
-    pointer.includes('/definitions/') ||
-    pointer.includes('/$defs/');
+    pointer === "#" ||
+    pointer.includes("/definitions/") ||
+    pointer.includes("/$defs/");
 
   // Use title for root and definitions, otherwise use suggested name
   if (schema.title && isRootOrDefinition) {
@@ -68,19 +68,43 @@ export const traverse = ({
   }
 
   // Traverse definitions
-  traverseDefinitions({ schema, registry, references, pointer, parentName: name });
+  traverseDefinitions({
+    schema,
+    registry,
+    references,
+    pointer,
+    parentName: name,
+  });
 
   // Traverse properties
-  traverseProperties({ schema, registry, references, pointer, parentName: name });
+  traverseProperties({
+    schema,
+    registry,
+    references,
+    pointer,
+    parentName: name,
+  });
 
   // Traverse array items
   traverseItems({ schema, registry, references, pointer, parentName: name });
 
   // Traverse additional properties
-  traverseAdditionalProperties({ schema, registry, references, pointer, parentName: name });
+  traverseAdditionalProperties({
+    schema,
+    registry,
+    references,
+    pointer,
+    parentName: name,
+  });
 
   // Traverse combinators
-  traverseCombinators({ schema, registry, references, pointer, parentName: name });
+  traverseCombinators({
+    schema,
+    registry,
+    references,
+    pointer,
+    parentName: name,
+  });
 };
 
 /**
@@ -198,7 +222,10 @@ const traverseAdditionalProperties = ({
   pointer,
   parentName,
 }: SubTraverseParams): void => {
-  if (schema.additionalProperties && typeof schema.additionalProperties === 'object') {
+  if (
+    schema.additionalProperties &&
+    typeof schema.additionalProperties === "object"
+  ) {
     traverse({
       schema: schema.additionalProperties as JsonSchema,
       registry,
@@ -224,7 +251,7 @@ const traverseCombinators = ({
   if (schema.oneOf) {
     schema.oneOf.forEach((sub, index) => {
       const isRef = !!sub.$ref;
-      const subName = isRef ? '' : `${parentName}Option${index}`;
+      const subName = isRef ? "" : `${parentName}Option${index}`;
       traverse({
         schema: sub as JsonSchema,
         registry,
@@ -238,7 +265,7 @@ const traverseCombinators = ({
   if (schema.anyOf) {
     schema.anyOf.forEach((sub, index) => {
       const isRef = !!sub.$ref;
-      const subName = isRef ? '' : `${parentName}Option${index}`;
+      const subName = isRef ? "" : `${parentName}Option${index}`;
       traverse({
         schema: sub as JsonSchema,
         registry,
@@ -252,7 +279,7 @@ const traverseCombinators = ({
   if (schema.allOf) {
     schema.allOf.forEach((sub, index) => {
       const isRef = !!sub.$ref;
-      const subName = isRef ? '' : `${parentName}Part${index}`;
+      const subName = isRef ? "" : `${parentName}Part${index}`;
       traverse({
         schema: sub as JsonSchema,
         registry,

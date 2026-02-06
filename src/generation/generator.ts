@@ -3,10 +3,10 @@
  * Orchestrates the type building process for JSON Schema.
  */
 
-import { JsonSchema } from '../types';
-import { TypeNameRegistry } from '../registry';
-import { generateJSDoc } from './jsdoc';
-import { shouldUseTypeAlias, getDeclarationParts } from './type-decider';
+import { JsonSchema } from "../types";
+import { TypeNameRegistry } from "../registry";
+import { generateJSDoc } from "./jsdoc";
+import { shouldUseTypeAlias, getDeclarationParts } from "./type-decider";
 import {
   TypeBuildContext,
   buildReferenceType,
@@ -18,7 +18,7 @@ import {
   buildObjectType,
   buildArrayType,
   hasObjectDefinition,
-} from './type-builders';
+} from "./type-builders";
 /**
  * Result of generating a type definition.
  */
@@ -61,7 +61,7 @@ export const generateTypeDefinition = ({
   schema,
   rootSchema,
   registry,
-  pointer = '#',
+  pointer = "#",
 }: GenerateTypeDefinitionParams): GeneratedType => {
   const jsDoc = generateJSDoc(schema);
   const typeName = name;
@@ -125,14 +125,14 @@ export const buildTypeFromSchema = (context: TypeBuildContext): string => {
     combinatorType = buildUnionType({
       schemas: schema.oneOf,
       parentContext: context,
-      pointerSuffix: 'oneOf',
+      pointerSuffix: "oneOf",
       buildType: buildTypeFromSchema,
     });
   } else if (schema.anyOf) {
     combinatorType = buildUnionType({
       schemas: schema.anyOf,
       parentContext: context,
-      pointerSuffix: 'anyOf',
+      pointerSuffix: "anyOf",
       buildType: buildTypeFromSchema,
     });
   } else if (schema.allOf) {
@@ -151,8 +151,8 @@ export const buildTypeFromSchema = (context: TypeBuildContext): string => {
         context,
         buildType: buildTypeFromSchema,
       });
-    } else if (schema.type === 'object' && !combinatorType) {
-      objectType = 'Record<string, any>';
+    } else if (schema.type === "object" && !combinatorType) {
+      objectType = "Record<string, any>";
     }
   }
 
@@ -186,22 +186,22 @@ export const buildTypeFromSchema = (context: TypeBuildContext): string => {
   const type = schema.type;
 
   switch (type) {
-    case 'string':
-      return 'string';
-    case 'number':
-    case 'integer':
-      return 'number';
-    case 'boolean':
-      return 'boolean';
-    case 'null':
-      return 'null';
-    case 'array':
+    case "string":
+      return "string";
+    case "number":
+    case "integer":
+      return "number";
+    case "boolean":
+      return "boolean";
+    case "null":
+      return "null";
+    case "array":
       return buildArrayType({
         schema,
         context,
         buildType: buildTypeFromSchema,
       });
     default:
-      return 'any';
+      return "any";
   }
 };

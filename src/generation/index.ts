@@ -8,17 +8,17 @@ export {
   buildTypeFromSchema,
   GeneratedType,
   GenerateTypeDefinitionParams,
-} from './generator';
+} from "./generator";
 
 // JSDoc generation
-export { generateJSDoc } from './jsdoc';
+export { generateJSDoc } from "./jsdoc";
 
 // Type decision logic
 export {
   shouldUseTypeAlias,
   getDeclarationParts,
   ShouldUseTypeAliasParams,
-} from './type-decider';
+} from "./type-decider";
 
 // Type builders (re-export for advanced usage)
 export {
@@ -34,4 +34,4 @@ export {
   buildObjectType,
   buildArrayType,
   hasObjectDefinition,
-} from './type-builders';
+} from "./type-builders";

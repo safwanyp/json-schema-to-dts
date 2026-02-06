@@ -16,8 +16,8 @@
  */
 export const toPascalCase = (str: string): string => {
   return str
-    .replace(/[^a-zA-Z0-9]/g, ' ')
+    .replace(/[^a-zA-Z0-9]/g, " ")
     .trim()
     .replace(/(?:^|\s)(\w)/g, (_, char) => char.toUpperCase())
-    .replace(/\s/g, '');
+    .replace(/\s/g, "");
 };

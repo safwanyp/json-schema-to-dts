@@ -7,4 +7,4 @@ export {
   resolveRef,
   ResolvePointerParams,
   ResolveRefParams,
-} from './pointer-resolver';
+} from "./pointer-resolver";

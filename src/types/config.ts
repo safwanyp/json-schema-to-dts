@@ -19,7 +19,7 @@ export interface TypeGenerationOptions {
   exportAll?: boolean;
 }
 
-export type GeneratedTypesExportFormat = 'UNIQUE_EXPORTS' | 'ROOT_ONLY';
+export type GeneratedTypesExportFormat = "UNIQUE_EXPORTS" | "ROOT_ONLY";
 
 /**
  * Configuration for the `toTypes` function.

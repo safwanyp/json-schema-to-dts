@@ -2,8 +2,8 @@
  * Shared context for type building operations.
  */
 
-import { JsonSchema } from '../../types';
-import { TypeNameRegistry } from '../../registry';
+import { JsonSchema } from "../../types";
+import { TypeNameRegistry } from "../../registry";
 
 /**
  * Context passed to type builders containing all necessary information
@@ -37,7 +37,7 @@ export interface TypeBuildContext {
 export const createChildContext = (
   parent: TypeBuildContext,
   schema: JsonSchema,
-  pointerSuffix: string
+  pointerSuffix: string,
 ): TypeBuildContext => ({
   schema,
   rootSchema: parent.rootSchema,

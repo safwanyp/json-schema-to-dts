@@ -3,7 +3,7 @@
  * Handles resolving JSON Pointers (RFC 6901) within JSON Schema documents.
  */
 
-import { JsonSchema } from '../types';
+import { JsonSchema } from "../types";
 
 /**
  * Parameters for resolving a JSON Pointer.
@@ -31,14 +31,14 @@ export const resolvePointer = ({
   root,
   pointer,
 }: ResolvePointerParams): JsonSchema | null => {
-  if (pointer === '#') return root;
+  if (pointer === "#") return root;
 
   // Remove #/ prefix and split into path segments
-  const pathParts = pointer.replace(/^#\//, '').split('/');
+  const pathParts = pointer.replace(/^#\//, "").split("/");
   let current: unknown = root;
 
   for (const part of pathParts) {
-    if (current && typeof current === 'object' && part in current) {
+    if (current && typeof current === "object" && part in current) {
       current = (current as Record<string, unknown>)[part];
     } else {
       return null;
@@ -71,19 +71,22 @@ export interface ResolveRefParams {
  *   rootSchema: schema
  * });
  */
-export const resolveRef = ({ ref, rootSchema }: ResolveRefParams): JsonSchema => {
+export const resolveRef = ({
+  ref,
+  rootSchema,
+}: ResolveRefParams): JsonSchema => {
   // Handle #/definitions/ shorthand
-  if (ref.startsWith('#/definitions/')) {
-    return rootSchema.definitions?.[ref.replace('#/definitions/', '')] || {};
+  if (ref.startsWith("#/definitions/")) {
+    return rootSchema.definitions?.[ref.replace("#/definitions/", "")] || {};
   }
 
   // Handle #/$defs/ shorthand
-  if (ref.startsWith('#/$defs/')) {
-    return rootSchema.$defs?.[ref.replace('#/$defs/', '')] || {};
+  if (ref.startsWith("#/$defs/")) {
+    return rootSchema.$defs?.[ref.replace("#/$defs/", "")] || {};
   }
 
   // Handle arbitrary JSON Pointer paths
-  if (ref.startsWith('#/')) {
+  if (ref.startsWith("#/")) {
     const result = resolvePointer({ root: rootSchema, pointer: ref });
     return result || {};
   }

@@ -3,8 +3,8 @@
  * Handles schemas with properties and additionalProperties.
  */
 
-import { JsonSchema } from '../../types';
-import { TypeBuildContext, createChildContext } from './context';
+import { JsonSchema } from "../../types";
+import { TypeBuildContext, createChildContext } from "./context";
 
 /**
  * Parameters for building an object type.
@@ -32,7 +32,7 @@ export const buildObjectType = ({
   buildType,
 }: BuildObjectTypeParams): string => {
   if (!schema.properties && !schema.additionalProperties) {
-    return 'Record<string, any>';
+    return "Record<string, any>";
   }
 
   const lines: string[] = [];
@@ -44,21 +44,21 @@ export const buildObjectType = ({
       const childContext = createChildContext(
         context,
         propSchema,
-        `properties/${key}`
+        `properties/${key}`,
       );
       const propType = buildType(childContext);
-      const optional = isRequired ? '' : '?';
+      const optional = isRequired ? "" : "?";
       lines.push(`  ${key}${optional}: ${propType};`);
     });
   }
 
   // Build additional properties type (index signature)
   if (schema.additionalProperties) {
-    if (typeof schema.additionalProperties === 'object') {
+    if (typeof schema.additionalProperties === "object") {
       const childContext = createChildContext(
         context,
         schema.additionalProperties,
-        'additionalProperties'
+        "additionalProperties",
       );
       const valueType = buildType(childContext);
       lines.push(`  [key: string]: ${valueType};`);
@@ -67,7 +67,7 @@ export const buildObjectType = ({
     }
   }
 
-  return `{\n${lines.join('\n')}\n}`;
+  return `{\n${lines.join("\n")}\n}`;
 };
 
 /**
@@ -80,6 +80,6 @@ export const hasObjectDefinition = (schema: JsonSchema): boolean => {
   return !!(
     schema.properties ||
     schema.additionalProperties ||
-    schema.type === 'object'
+    schema.type === "object"
   );
 };
