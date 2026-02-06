@@ -48,6 +48,7 @@ describe("Integration Tests", () => {
     await toTypes({
       pathToJsonSchemas: inputDir,
       pathToOutputDirectory: outputDir,
+      generatedTypesExportsFormat: "UNIQUE_EXPORTS",
     });
 
     // Check output file exists
@@ -61,12 +62,12 @@ describe("Integration Tests", () => {
     expect(content).toContain("id: UserId;");
     expect(content).toContain("name: UserName;");
     expect(content).toContain("age?: UserAge;");
-    
+
     // Check definitions of extracted types
     expect(content).toContain("type UserId = string");
     expect(content).toContain("type UserName = string");
     expect(content).toContain("type UserAge = number");
-    
+
     expect(content).toContain("export { User };");
     expect(content).toContain("A user in the system");
   });
@@ -94,6 +95,7 @@ describe("Integration Tests", () => {
     await toTypes({
       pathToJsonSchemas: inputDir,
       pathToOutputDirectory: outputDir,
+      generatedTypesExportsFormat: "UNIQUE_EXPORTS",
     });
 
     // Check nested output structure
@@ -136,6 +138,7 @@ describe("Integration Tests", () => {
     await toTypes({
       pathToJsonSchemas: inputDir,
       pathToOutputDirectory: outputDir,
+      generatedTypesExportsFormat: "UNIQUE_EXPORTS",
     });
 
     const outputFile = path.join(outputDir, "entities.d.ts");
@@ -169,6 +172,7 @@ describe("Integration Tests", () => {
     await toTypes({
       pathToJsonSchemas: inputDir,
       pathToOutputDirectory: outputDir,
+      generatedTypesExportsFormat: "UNIQUE_EXPORTS",
     });
 
     const outputFile = path.join(outputDir, "product.d.ts");
@@ -206,6 +210,7 @@ describe("Integration Tests", () => {
     await toTypes({
       pathToJsonSchemas: inputDir,
       pathToOutputDirectory: outputDir,
+      generatedTypesExportsFormat: "UNIQUE_EXPORTS",
     });
 
     const outputFile = path.join(outputDir, "person.d.ts");
@@ -245,6 +250,7 @@ describe("Integration Tests", () => {
     await toTypes({
       pathToJsonSchemas: inputDir,
       pathToOutputDirectory: outputDir,
+      generatedTypesExportsFormat: "UNIQUE_EXPORTS",
     });
 
     // Check both files were created
@@ -273,6 +279,7 @@ describe("Integration Tests", () => {
       toTypes({
         pathToJsonSchemas: inputDir,
         pathToOutputDirectory: outputDir,
+        generatedTypesExportsFormat: "UNIQUE_EXPORTS",
       }),
     ).resolves.not.toThrow();
 
@@ -298,6 +305,7 @@ describe("Integration Tests", () => {
     await toTypes({
       pathToJsonSchemas: inputDir,
       pathToOutputDirectory: deepOutputDir,
+      generatedTypesExportsFormat: "UNIQUE_EXPORTS",
     });
 
     expect(fs.existsSync(path.join(deepOutputDir, "test.d.ts"))).toBe(true);

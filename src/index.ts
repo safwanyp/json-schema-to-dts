@@ -21,6 +21,7 @@ import { createTypeNameRegistry } from './registry';
 import { scanSchema } from './scanning';
 import { generateTypeDefinition } from './generation';
 import { resolvePointer } from './resolution';
+import { GeneratedTypesExportFormat } from './types/config';
 
 /**
  * Convert JSON Schema files to TypeScript type definition files.
@@ -34,7 +35,7 @@ import { resolvePointer } from './resolution';
  * });
  */
 export const toTypes = async (config: ToTypesConfig): Promise<void> => {
-  const { pathToJsonSchemas, pathToOutputDirectory } = config;
+  const { pathToJsonSchemas, pathToOutputDirectory, generatedTypesExportsFormat } = config;
 
   // Ensure output directory exists
   if (!fs.existsSync(pathToOutputDirectory)) {
@@ -53,6 +54,7 @@ export const toTypes = async (config: ToTypesConfig): Promise<void> => {
         relativeSchemaPath,
         pathToJsonSchemas,
         pathToOutputDirectory,
+        generatedTypesExportsFormat,
       });
     } catch (error) {
       console.warn(
@@ -70,6 +72,7 @@ interface ProcessSchemaFileParams {
   relativeSchemaPath: string;
   pathToJsonSchemas: string;
   pathToOutputDirectory: string;
+  generatedTypesExportsFormat: GeneratedTypesExportFormat;
 }
 
 /**
@@ -79,6 +82,7 @@ const processSchemaFile = async ({
   relativeSchemaPath,
   pathToJsonSchemas,
   pathToOutputDirectory,
+  generatedTypesExportsFormat,
 }: ProcessSchemaFileParams): Promise<void> => {
   const fullSchemaPath = path.join(pathToJsonSchemas, relativeSchemaPath);
   const schemaContent = fs.readFileSync(fullSchemaPath, 'utf-8');
@@ -121,6 +125,7 @@ const processSchemaFile = async ({
       pathToOutputDirectory,
       typeDefinitions,
       exportedTypes,
+      generatedTypesExportsFormat,
     });
   }
 };
@@ -133,6 +138,7 @@ interface WriteOutputFileParams {
   pathToOutputDirectory: string;
   typeDefinitions: string[];
   exportedTypes: string[];
+  generatedTypesExportsFormat: GeneratedTypesExportFormat
 }
 
 /**
@@ -143,6 +149,7 @@ const writeOutputFile = ({
   pathToOutputDirectory,
   typeDefinitions,
   exportedTypes,
+  generatedTypesExportsFormat,
 }: WriteOutputFileParams): void => {
   // Generate output file path
   const outputFileName =
@@ -158,14 +165,23 @@ const writeOutputFile = ({
     fs.mkdirSync(outputDir, { recursive: true });
   }
 
-  // Write the type definitions with exports
-  const uniqueExports = [...new Set(exportedTypes)];
-  const content =
-    typeDefinitions.join('\n\n') +
-    '\n\n' +
-    uniqueExports.map((typeName) => `export { ${typeName} };`).join('\n') +
-    '\n';
-
-  fs.writeFileSync(outputFilePath, content, 'utf-8');
+  // Write the type definitions with exports based on the specified format
+  if (generatedTypesExportsFormat === 'UNIQUE_EXPORTS') {
+    const uniqueExports = [...new Set(exportedTypes)];
+    const content =
+      typeDefinitions.join('\n\n') +
+      '\n\n' +
+      uniqueExports.map((typeName) => `export { ${typeName} };`).join('\n') +
+      '\n';
+    fs.writeFileSync(outputFilePath, content, 'utf-8');
+  } else if (generatedTypesExportsFormat === 'ROOT_ONLY') {
+    const rootTypeName = exportedTypes[0];
+    const content =
+      typeDefinitions.join('\n\n') +
+      '\n\n' +
+      `export { ${rootTypeName} };` +
+      '\n';
+    fs.writeFileSync(outputFilePath, content, 'utf-8');
+  }
   console.log(`Generated: ${outputFilePath}`);
 };
