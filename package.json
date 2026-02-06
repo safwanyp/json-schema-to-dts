@@ -1,6 +1,6 @@
 {
   "name": "@safwanyp/json-schema-to-dts",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "description": "Convert JSON Schema to TypeScript types with JSDoc annotations",
   "keywords": [
     "jsdoc",
