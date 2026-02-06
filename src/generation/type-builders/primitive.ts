@@ -3,7 +3,7 @@
  * Handles string, number, integer, boolean, null, and unknown types.
  */
 
-import { JsonSchema } from '../../types';
+import { JsonSchema } from "../../types";
 
 /**
  * Maps a JSON Schema type string to its TypeScript equivalent.
@@ -18,21 +18,21 @@ import { JsonSchema } from '../../types';
  */
 export const mapJsonTypeToTs = (jsonType: string): string => {
   switch (jsonType) {
-    case 'string':
-      return 'string';
-    case 'number':
-    case 'integer':
-      return 'number';
-    case 'boolean':
-      return 'boolean';
-    case 'null':
-      return 'null';
-    case 'array':
-      return 'any[]';
-    case 'object':
-      return 'object';
+    case "string":
+      return "string";
+    case "number":
+    case "integer":
+      return "number";
+    case "boolean":
+      return "boolean";
+    case "null":
+      return "null";
+    case "array":
+      return "any[]";
+    case "object":
+      return "object";
     default:
-      return 'any';
+      return "any";
   }
 };
 
@@ -43,8 +43,10 @@ export const mapJsonTypeToTs = (jsonType: string): string => {
  * @returns True if the schema is a primitive type
  */
 export const isPrimitiveType = (schema: JsonSchema): boolean => {
-  const primitiveTypes = ['string', 'number', 'integer', 'boolean', 'null'];
-  return typeof schema.type === 'string' && primitiveTypes.includes(schema.type);
+  const primitiveTypes = ["string", "number", "integer", "boolean", "null"];
+  return (
+    typeof schema.type === "string" && primitiveTypes.includes(schema.type)
+  );
 };
 
 /**
@@ -54,8 +56,8 @@ export const isPrimitiveType = (schema: JsonSchema): boolean => {
  * @returns The TypeScript type string
  */
 export const buildPrimitiveType = (schema: JsonSchema): string => {
-  if (typeof schema.type === 'string') {
+  if (typeof schema.type === "string") {
     return mapJsonTypeToTs(schema.type);
   }
-  return 'any';
+  return "any";
 };

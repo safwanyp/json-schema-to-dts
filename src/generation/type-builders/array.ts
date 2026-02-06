@@ -3,8 +3,8 @@
  * Handles arrays with items (single schema or tuple).
  */
 
-import { JsonSchema } from '../../types';
-import { TypeBuildContext, createChildContext } from './context';
+import { JsonSchema } from "../../types";
+import { TypeBuildContext, createChildContext } from "./context";
 
 /**
  * Parameters for building an array type.
@@ -33,28 +33,24 @@ export const buildArrayType = ({
   buildType,
 }: BuildArrayTypeParams): string => {
   if (!schema.items) {
-    return 'any[]';
+    return "any[]";
   }
 
   // Tuple type (items is an array of schemas)
   if (Array.isArray(schema.items)) {
     const tupleTypes = schema.items.map((item, index) => {
-      const childContext = createChildContext(
-        context,
-        item,
-        `items/${index}`
-      );
+      const childContext = createChildContext(context, item, `items/${index}`);
       return buildType(childContext);
     });
-    return `[${tupleTypes.join(', ')}]`;
+    return `[${tupleTypes.join(", ")}]`;
   }
 
   // Regular array (items is a single schema)
-  const childContext = createChildContext(context, schema.items, 'items');
+  const childContext = createChildContext(context, schema.items, "items");
   const itemType = buildType(childContext);
 
   // Wrap complex types in parentheses
-  if (itemType.includes(' | ') || itemType.includes(' & ')) {
+  if (itemType.includes(" | ") || itemType.includes(" & ")) {
     return `(${itemType})[]`;
   }
 

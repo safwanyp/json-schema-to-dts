@@ -3,11 +3,11 @@
  * Handles resolving references to other schema definitions.
  */
 
-import { JsonSchema } from '../../types';
-import { TypeNameRegistry } from '../../registry';
-import { resolveRef } from '../../resolution';
-import { toPascalCase } from '../../utils';
-import { TypeBuildContext } from './context';
+import { JsonSchema } from "../../types";
+import { TypeNameRegistry } from "../../registry";
+import { resolveRef } from "../../resolution";
+import { toPascalCase } from "../../utils";
+import { TypeBuildContext } from "./context";
 
 /**
  * Parameters for building a reference type.
@@ -87,17 +87,17 @@ const resolveLegacyRef = ({
         schema: resolved,
         rootSchema,
         registry,
-        pointer: '#/legacy-fallback',
+        pointer: "#/legacy-fallback",
         lookupInRegistry: false,
       });
     }
 
     // Complex type - derive name from ref path
-    const parts = ref.split('/');
+    const parts = ref.split("/");
     return toPascalCase(parts[parts.length - 1]);
   }
 
   // Last resort - derive name from ref path
-  const parts = ref.split('/');
+  const parts = ref.split("/");
   return toPascalCase(parts[parts.length - 1]);
 };

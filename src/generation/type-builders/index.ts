@@ -4,13 +4,17 @@
  */
 
 // Context
-export { TypeBuildContext, createChildContext } from './context';
+export { TypeBuildContext, createChildContext } from "./context";
 
 // Primitive types (string, number, boolean, null)
-export { mapJsonTypeToTs, isPrimitiveType, buildPrimitiveType } from './primitive';
+export {
+  mapJsonTypeToTs,
+  isPrimitiveType,
+  buildPrimitiveType,
+} from "./primitive";
 
 // Reference types ($ref)
-export { buildReferenceType, BuildReferenceTypeParams } from './reference';
+export { buildReferenceType, BuildReferenceTypeParams } from "./reference";
 
 // Union types (oneOf, anyOf, enum, const)
 export {
@@ -19,13 +23,20 @@ export {
   buildConstType,
   buildTypeArrayUnion,
   BuildUnionTypeParams,
-} from './union';
+} from "./union";
 
 // Intersection types (allOf)
-export { buildIntersectionType, BuildIntersectionTypeParams } from './intersection';
+export {
+  buildIntersectionType,
+  BuildIntersectionTypeParams,
+} from "./intersection";
 
 // Object types (properties, additionalProperties)
-export { buildObjectType, hasObjectDefinition, BuildObjectTypeParams } from './object';
+export {
+  buildObjectType,
+  hasObjectDefinition,
+  BuildObjectTypeParams,
+} from "./object";
 
 // Array types (items)
-export { buildArrayType, BuildArrayTypeParams } from './array';
+export { buildArrayType, BuildArrayTypeParams } from "./array";

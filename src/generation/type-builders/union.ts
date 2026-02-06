@@ -3,9 +3,9 @@
  * Handles oneOf, anyOf, enum, const, and type arrays.
  */
 
-import { JsonSchema } from '../../types';
-import { TypeBuildContext, createChildContext } from './context';
-import { mapJsonTypeToTs } from './primitive';
+import { JsonSchema } from "../../types";
+import { TypeBuildContext, createChildContext } from "./context";
+import { mapJsonTypeToTs } from "./primitive";
 
 /**
  * Parameters for building a union type.
@@ -40,12 +40,12 @@ export const buildUnionType = ({
     const childContext = createChildContext(
       parentContext,
       schema,
-      `${pointerSuffix}/${index}`
+      `${pointerSuffix}/${index}`,
     );
     return buildType(childContext);
   });
 
-  return types.join(' | ');
+  return types.join(" | ");
 };
 
 /**
@@ -56,8 +56,8 @@ export const buildUnionType = ({
  */
 export const buildEnumType = (enumValues: unknown[]): string => {
   return enumValues
-    .map((val) => (typeof val === 'string' ? `"${val}"` : String(val)))
-    .join(' | ');
+    .map((val) => (typeof val === "string" ? `"${val}"` : String(val)))
+    .join(" | ");
 };
 
 /**
@@ -67,7 +67,7 @@ export const buildEnumType = (enumValues: unknown[]): string => {
  * @returns The TypeScript literal type string
  */
 export const buildConstType = (constValue: unknown): string => {
-  return typeof constValue === 'string'
+  return typeof constValue === "string"
     ? `"${constValue}"`
     : String(constValue);
 };
@@ -82,5 +82,5 @@ export const buildConstType = (constValue: unknown): string => {
  * buildTypeArrayUnion(['string', 'null']) // => 'string | null'
  */
 export const buildTypeArrayUnion = (types: string[]): string => {
-  return types.map((t) => mapJsonTypeToTs(t)).join(' | ');
+  return types.map((t) => mapJsonTypeToTs(t)).join(" | ");
 };

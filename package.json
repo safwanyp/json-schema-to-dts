@@ -8,9 +8,9 @@
     "types",
     "typescript"
   ],
-  "repository": "https://github.com/safwanyp/json-schema-to-dts",
   "license": "MIT",
   "author": "Safwan Parkar",
+  "repository": "https://github.com/safwanyp/json-schema-to-dts",
   "files": [
     "LICENSE",
     "README.md",
