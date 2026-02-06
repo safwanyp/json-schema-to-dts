@@ -32,6 +32,7 @@ import { toTypes } from "@safwanyp/json-schema-to-dts";
 await toTypes({
   pathToJsonSchemas: "./schemas",
   pathToOutputDirectory: "./src/types",
+  generatedTypesExportsFormat: 'ROOT_ONLY' // or 'UNIQUE_EXPORTS'
 });
 ```
 
@@ -88,6 +89,7 @@ export { UserMeta };
 
 - `config.pathToJsonSchemas` (string): Absolute or relative path to the directory containing `.json` schema files.
 - `config.pathToOutputDirectory` (string): Absolute or relative path to the directory where `.d.ts` files will be written.
+- `config.generatedTypesExportsFormat` (string): Determines how generated types are exported in the output `.d.ts` files. Accepted values for now are 'UNIQUE_EXPORTS' and 'ROOT_ONLY'.
 
 ## Development
 
