@@ -28,6 +28,7 @@ describe("Complex Schema Generation", () => {
     await toTypes({
       pathToJsonSchemas: schemaDir,
       pathToOutputDirectory: outputDir,
+      generatedTypesExportsFormat: "UNIQUE_EXPORTS",
     });
 
     expect(fs.existsSync(outputFile)).toBe(true);
@@ -54,7 +55,7 @@ describe("Complex Schema Generation", () => {
     // Programme should be a union of LoyaltyProgramme and CampaignProgramme
     // Improved logic: If union members are Refs, use them directly without aliases.
     expect(content).toContain("LoyaltyProgramme | CampaignProgramme");
-    
+
     // We expect NO alias wrappers for these Refs
     expect(content).not.toContain("type ProgrammeOption0 = LoyaltyProgramme");
     expect(content).not.toContain("type ProgrammeOption1 = CampaignProgramme");
@@ -77,7 +78,7 @@ describe("Complex Schema Generation", () => {
     // Actually, due to strict naming, Provider.type -> ProviderType (property alias).
     // But since it matches base name, we removed it.
     // So Provider.type -> ProviderType (definition).
-    
+
     // Ensure no _1 suffixes for simple redundant aliases
     expect(content).not.toContain("type ProviderType_1");
     expect(content).toContain("type ProviderType = ");

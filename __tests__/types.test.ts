@@ -142,6 +142,7 @@ describe("Type Definitions", () => {
       const config: ToTypesConfig = {
         pathToJsonSchemas: "./schemas",
         pathToOutputDirectory: "./types",
+        generatedTypesExportsFormat: "UNIQUE_EXPORTS",
       };
 
       expect(config.pathToJsonSchemas).toBe("./schemas");
@@ -153,6 +154,7 @@ describe("Type Definitions", () => {
       const config: ToTypesConfig = {
         pathToJsonSchemas: "./schemas",
         pathToOutputDirectory: "./types",
+        generatedTypesExportsFormat: "UNIQUE_EXPORTS",
       };
 
       expect(config).toBeDefined();

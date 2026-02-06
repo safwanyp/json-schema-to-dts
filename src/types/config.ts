@@ -19,6 +19,8 @@ export interface TypeGenerationOptions {
   exportAll?: boolean;
 }
 
+export type GeneratedTypesExportFormat = 'UNIQUE_EXPORTS' | 'ROOT_ONLY';
+
 /**
  * Configuration for the `toTypes` function.
  */
@@ -34,4 +36,11 @@ export interface ToTypesConfig {
    * The directory structure of the input schemas will be mirrored here.
    */
   pathToOutputDirectory: string;
+
+  /**
+   * Determines how generated types are exported in the output `.d.ts` files.
+   * - 'UNIQUE_EXPORTS': Exports all generated types, including nested ones, with unique names.
+   * - 'ROOT_ONLY': Only exports the root type corresponding to each input schema file.
+   */
+  generatedTypesExportsFormat: GeneratedTypesExportFormat;
 }
