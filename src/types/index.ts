@@ -3,4 +3,8 @@
  */
 
 export { JsonSchema } from "./json-schema";
-export { TypeGenerationOptions, ToTypesConfig } from "./config";
+export {
+  TypeGenerationOptions,
+  ToTypesConfig,
+  GeneratedTypesExportFormat,
+} from "./config";
