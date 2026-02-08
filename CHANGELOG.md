@@ -2,6 +2,8 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [0.1.4](https://github.com/safwanyp/json-schema-to-dts/compare/@safwanyp/json-schema-to-dts@0.1.3...@safwanyp/json-schema-to-dts@0.1.4) (2026-02-08)
+
 ### [0.1.3](https://github.com/safwanyp/json-schema-to-dts/compare/@safwanyp/json-schema-to-dts@0.1.2...@safwanyp/json-schema-to-dts@0.1.3) (2026-02-06)
 
 
