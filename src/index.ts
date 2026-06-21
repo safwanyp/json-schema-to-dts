@@ -7,7 +7,7 @@
 
 import * as fs from "fs";
 import * as path from "path";
-import { glob } from "glob";
+import { glob } from "tinyglobby";
 
 // Re-export types
 export { JsonSchema, TypeGenerationOptions, ToTypesConfig } from "./types";
